@@ -14,6 +14,7 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 header('Access-Control-Allow-Origin: *');
 header('Cross-Origin-Resource-Policy: cross-origin');
+header('Access-Control-Expose-Headers: Content-Range, Accept-Ranges, Content-Length');
 header("Content-Security-Policy: default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'");
 
 try {
@@ -30,10 +31,16 @@ try {
         max(1, (int) (getenv('DUOVIEW_CONNECT_TIMEOUT') ?: 5)),
         max(2, (int) (getenv('DUOVIEW_TOTAL_TIMEOUT') ?: 15)),
     );
-    $response = $proxy->fetch($url, $ua, $theme);
+    $response = $proxy->fetch($url, $ua, $theme, isset($_SERVER['HTTP_RANGE']) ? (string) $_SERVER['HTTP_RANGE'] : null);
     http_response_code($response['status']);
     header('Content-Type: ' . $response['mime'] . (str_starts_with($response['mime'], 'text/') ? '; charset=utf-8' : ''));
     header('X-Duoviewurl-Url: ' . rawurlencode($response['url']));
+    if ($response['contentRange'] !== null) {
+        header('Content-Range: ' . $response['contentRange']);
+    }
+    if ($response['acceptRanges'] !== null) {
+        header('Accept-Ranges: ' . $response['acceptRanges']);
+    }
     echo $response['body'];
 } catch (ProxyException $exception) {
     http_response_code($exception->httpStatus);

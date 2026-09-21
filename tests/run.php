@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Duoviewurl\HtmlRewriter;
+use Duoviewurl\HttpProxy;
 use Duoviewurl\ProxyException;
 use Duoviewurl\SsrfGuard;
 use Duoviewurl\Url;
@@ -80,6 +81,12 @@ test('réécrit les url CSS', function (): void {
     $css = (new HtmlRewriter())->rewriteCss('@import "theme.css";body{background:url(../bg.png)}', 'https://example.com/css/main.css', 'iphone', 'light');
     assertTrue(str_contains($css, 'url=https%3A%2F%2Fexample.com%2Fbg.png'));
     assertTrue(str_contains($css, 'url=https%3A%2F%2Fexample.com%2Fcss%2Ftheme.css'));
+});
+test('borne les requêtes média à des segments de 4 Mio', function (): void {
+    assertTrue(HttpProxy::normalizeRange('bytes=0-') === 'bytes=0-4194303');
+    assertTrue(HttpProxy::normalizeRange('bytes=1000-9999999') === 'bytes=1000-4195303');
+    assertTrue(HttpProxy::normalizeRange('bytes=500-100') === null);
+    assertTrue(HttpProxy::normalizeRange('bytes=0-10,20-30') === null);
 });
 
 echo "\n{$passed} test(s) réussi(s), {$failed} échec(s).\n";

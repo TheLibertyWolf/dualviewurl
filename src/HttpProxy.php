@@ -9,8 +9,10 @@ final class HttpProxy
         'text/html', 'text/css', 'text/plain', 'text/javascript', 'application/javascript',
         'application/json', 'application/xml', 'text/xml', 'image/jpeg', 'image/png', 'image/gif',
         'image/webp', 'image/svg+xml', 'image/avif', 'image/x-icon', 'font/woff', 'font/woff2',
-        'application/font-woff', 'application/octet-stream', 'application/pdf',
+        'application/font-woff', 'application/octet-stream', 'application/pdf', 'video/mp4',
+        'video/webm', 'video/ogg', 'audio/mpeg', 'audio/mp4', 'audio/ogg', 'audio/wav',
     ];
+    private const MEDIA_CHUNK_BYTES = 4194304;
 
     public function __construct(
         private readonly SsrfGuard $guard,
@@ -22,13 +24,17 @@ final class HttpProxy
     ) {
     }
 
-    /** @return array{status:int,mime:string,body:string,url:string} */
-    public function fetch(string $url, string $uaKey, string $theme): array
+    /** @return array{status:int,mime:string,body:string,url:string,contentRange:?string,acceptRanges:?string} */
+    public function fetch(string $url, string $uaKey, string $theme, ?string $rangeHeader = null): array
     {
         $userAgent = $this->userAgent($uaKey);
+        $range = self::normalizeRange($rangeHeader);
+        if ($range === null && self::looksLikeMedia($url)) {
+            $range = 'bytes=0-' . (self::MEDIA_CHUNK_BYTES - 1);
+        }
         for ($redirects = 0; $redirects <= $this->maxRedirects; $redirects++) {
             $target = $this->guard->validate($url);
-            $response = $this->request($target, $userAgent);
+            $response = $this->request($target, $userAgent, $range);
             if ($response['location'] !== null && in_array($response['status'], [301, 302, 303, 307, 308], true)) {
                 if ($redirects === $this->maxRedirects) {
                     throw new ProxyException('Trop de redirections.', 502);
@@ -47,21 +53,28 @@ final class HttpProxy
             } elseif ($mime === 'text/css') {
                 $body = $this->rewriter->rewriteCss($body, $url, $uaKey, $theme);
             }
-            return ['status' => $response['status'], 'mime' => $mime, 'body' => $body, 'url' => $url];
+            return [
+                'status' => $response['status'], 'mime' => $mime, 'body' => $body, 'url' => $url,
+                'contentRange' => $response['contentRange'], 'acceptRanges' => $response['acceptRanges'],
+            ];
         }
         throw new ProxyException('Redirection impossible.', 502);
     }
 
     /** @param array{url:string,host:string,port:int,ip:string} $target
-     *  @return array{status:int,contentType:string,location:?string,body:string}
+     *  @return array{status:int,contentType:string,location:?string,contentRange:?string,acceptRanges:?string,body:string}
      */
-    private function request(array $target, string $userAgent): array
+    private function request(array $target, string $userAgent, ?string $range): array
     {
         $body = '';
         $headers = [];
         $tooLarge = false;
         $ch = curl_init($target['url']);
         $pinnedIp = str_contains($target['ip'], ':') ? '[' . $target['ip'] . ']' : $target['ip'];
+        $requestHeaders = ['Accept: text/html,application/xhtml+xml,text/css,image/avif,image/webp,image/*,video/*,audio/*,*/*;q=0.8', 'Accept-Language: fr,en;q=0.8', 'DNT: 1'];
+        if ($range !== null) {
+            $requestHeaders[] = 'Range: ' . $range;
+        }
         curl_setopt_array($ch, [
             CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
@@ -72,7 +85,7 @@ final class HttpProxy
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_HTTPHEADER => ['Accept: text/html,application/xhtml+xml,text/css,image/avif,image/webp,image/*,*/*;q=0.8', 'Accept-Language: fr,en;q=0.8', 'DNT: 1'],
+            CURLOPT_HTTPHEADER => $requestHeaders,
             CURLOPT_RESOLVE => [$target['host'] . ':' . $target['port'] . ':' . $pinnedIp],
             CURLOPT_HEADERFUNCTION => static function ($curl, string $line) use (&$headers): int {
                 $length = strlen($line);
@@ -103,7 +116,34 @@ final class HttpProxy
         if ($ok === false) {
             throw new ProxyException('Le site distant ne répond pas dans les conditions autorisées' . ($error !== '' ? ' (' . $error . ')' : '') . '.', 504);
         }
-        return ['status' => $status ?: 502, 'contentType' => $contentType, 'location' => $headers['location'] ?? null, 'body' => $body];
+        return [
+            'status' => $status ?: 502,
+            'contentType' => $contentType,
+            'location' => $headers['location'] ?? null,
+            'contentRange' => $headers['content-range'] ?? null,
+            'acceptRanges' => $headers['accept-ranges'] ?? null,
+            'body' => $body,
+        ];
+    }
+
+    public static function normalizeRange(?string $range): ?string
+    {
+        if ($range === null || !preg_match('/^bytes=(\d+)-(\d*)$/', trim($range), $matches)) {
+            return null;
+        }
+        $start = (int) $matches[1];
+        $requestedEnd = $matches[2] !== '' ? (int) $matches[2] : PHP_INT_MAX;
+        if ($requestedEnd < $start) {
+            return null;
+        }
+        $end = min($requestedEnd, $start + self::MEDIA_CHUNK_BYTES - 1);
+        return 'bytes=' . $start . '-' . $end;
+    }
+
+    private static function looksLikeMedia(string $url): bool
+    {
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?? '');
+        return preg_match('/\.(?:mp4|webm|ogv|mp3|m4a|ogg|wav)$/i', $path) === 1;
     }
 
     private function userAgent(string $key): string

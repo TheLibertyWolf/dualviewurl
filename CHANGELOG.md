@@ -15,6 +15,7 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - limite par IP portée à 1 200 requêtes proxifiées par minute pour tenir compte des ressources chargées par les deux vues.
 - chargement des CSS et polices dans les iframes sandboxées grâce aux en-têtes CORS du proxy ;
 - suppression des attributs SRI devenus invalides après réécriture des ressources.
+- lecture des vidéos et fichiers audio par segments HTTP de 4 Mio avec prise en charge de `Range` et `Content-Range`.
 
 ## [1.0.1] - 2026-09-21
 
