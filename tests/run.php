@@ -82,6 +82,12 @@ test('réécrit les url CSS', function (): void {
     assertTrue(str_contains($css, 'url=https%3A%2F%2Fexample.com%2Fbg.png'));
     assertTrue(str_contains($css, 'url=https%3A%2F%2Fexample.com%2Fcss%2Ftheme.css'));
 });
+test('remplace les CAPTCHA tiers par une explication sûre', function (): void {
+    $html = (new HtmlRewriter())->rewrite('<html><body><div class="form-row g-recaptcha" data-sitekey="public-key"></div></body></html>', 'https://example.com/contact', 'desktop', 'light');
+    assertTrue(str_contains(html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'CAPTCHA détecté'));
+    assertTrue(str_contains($html, 'href="https://example.com/contact"'));
+    assertTrue(str_contains($html, 'target="_blank"'));
+});
 test('borne les requêtes média à des segments de 4 Mio', function (): void {
     assertTrue(HttpProxy::normalizeRange('bytes=0-') === 'bytes=0-4194303');
     assertTrue(HttpProxy::normalizeRange('bytes=1000-9999999') === 'bytes=1000-4195303');

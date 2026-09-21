@@ -81,12 +81,35 @@ final class HtmlRewriter
             $node->nodeValue = $this->rewriteCss($node->textContent, $effectiveBase, $ua, $theme);
         }
 
+        $captchaQuery = '//*[contains(concat(" ", normalize-space(@class), " "), " cf-turnstile ") or contains(concat(" ", normalize-space(@class), " "), " g-recaptcha ") or contains(concat(" ", normalize-space(@class), " "), " h-captcha ")]';
+        foreach ($xpath->query($captchaQuery) ?: [] as $node) {
+            if (!$node instanceof \DOMElement || $node->getAttribute('data-duoviewurl-captcha') === 'notice') {
+                continue;
+            }
+            $node->setAttribute('data-duoviewurl-captcha', 'notice');
+            while ($node->firstChild) {
+                $node->removeChild($node->firstChild);
+            }
+            $notice = $dom->createElement('div');
+            $notice->setAttribute('class', 'duoviewurl-captcha-notice');
+            $title = $dom->createElement('strong', 'CAPTCHA détecté');
+            $text = $dom->createElement('span', 'La vérification est liée au domaine original et ne peut pas être validée dans un aperçu proxy.');
+            $link = $dom->createElement('a', 'Ouvrir la page originale');
+            $link->setAttribute('href', $baseUrl);
+            $link->setAttribute('target', '_blank');
+            $link->setAttribute('rel', 'noopener noreferrer');
+            $notice->appendChild($title);
+            $notice->appendChild($text);
+            $notice->appendChild($link);
+            $node->appendChild($notice);
+        }
+
         $head = $xpath->query('//head')->item(0);
         if (!$head) {
             $head = $dom->createElement('head');
             $dom->documentElement?->insertBefore($head, $dom->documentElement->firstChild);
         }
-        $style = $dom->createElement('style', ':root{color-scheme:' . ($theme === 'dark' ? 'dark' : ($theme === 'light' ? 'light' : 'light dark')) . '}');
+        $style = $dom->createElement('style', ':root{color-scheme:' . ($theme === 'dark' ? 'dark' : ($theme === 'light' ? 'light' : 'light dark')) . '}.duoviewurl-captcha-notice{display:grid;gap:.45rem;padding:1rem;border:1px solid #f59e0b;border-radius:.6rem;background:#fffbeb;color:#78350f;font:14px/1.45 system-ui,sans-serif}.duoviewurl-captcha-notice strong{font-size:15px}.duoviewurl-captcha-notice a{color:#92400e;text-decoration:underline;font-weight:700}');
         $head->appendChild($style);
 
         $bridge = <<<'JS'

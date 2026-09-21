@@ -2,6 +2,21 @@
 
 Les changements notables de Duoviewurl sont documentés ici selon [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [1.2.0] - 2026-09-21
+
+### Ajouté
+
+- session distante temporaire et isolée par navigateur, partagée entre les deux vues ;
+- transmission des formulaires POST classiques et suivi des redirections de connexion ;
+- bouton « Effacer la session » supprimant immédiatement les cookies distants ;
+- exclusion des requêtes proxy du journal d’accès Apache.
+
+## [1.1.2] - 2026-09-21
+
+### Ajouté
+
+- détection des widgets Turnstile, reCAPTCHA et hCaptcha avec une explication visible et un lien vers la page originale.
+
 ## [1.1.1] - 2026-09-21
 
 ### Corrigé
@@ -43,6 +58,8 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - déploiement Docker isolé derrière Nginx Proxy Manager ;
 - tests automatisés et workflow CI.
 
+[1.2.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.0
+[1.1.2]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.1.2
 [1.1.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.1.1
 [1.1.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.1.0
 [1.0.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.0.1

@@ -1,4 +1,5 @@
 Options -Indexes
+SetEnvIf Request_URI "^/proxy\.php$" dontlog
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

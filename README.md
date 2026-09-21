@@ -1,6 +1,6 @@
 # Duoviewurl
 
-[![Version](https://img.shields.io/badge/version-1.1.1-2271b1)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-2271b1)](CHANGELOG.md)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D%208.2-777bb4)](https://www.php.net/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e)](https://developer.mozilla.org/fr/docs/Web/JavaScript)
 [![Licence](https://img.shields.io/badge/licence-MIT-46b450)](LICENSE)
@@ -25,6 +25,8 @@ L’écran principal est immédiatement utilisable : une barre d’URL, deux pan
 - presets indépendants par panneau pour desktop, laptop, iPad, iPhone, Pixel et Galaxy, avec largeur réelle et User-Agent adapté ;
 - thème système, clair ou sombre par panneau ;
 - synchronisation désactivable des liens suivis ;
+- sessions distantes temporaires partagées par les deux vues et formulaires POST classiques ;
+- effacement immédiat de la session distante depuis le footer ;
 - mémorisation locale optionnelle des réglages ;
 - partage de la page inspectée avec le paramètre `?url=` ;
 - interface responsive, navigation clavier, focus visible et réduction des mouvements ;
@@ -87,11 +89,13 @@ Le proxy refuse les schémas autres que HTTP(S), les identifiants intégrés, le
 
 Les requêtes ont une durée, une taille et un nombre de redirections limités. Les cookies et en-têtes d’autorisation du visiteur ne sont jamais transmis. Les contenus ne sont pas stockés. Les cadres distants sont sandboxés et le conteneur fonctionne en lecture seule avec des capacités Linux supprimées.
 
+Pour permettre l’inspection d’un espace authentifié, les cookies émis par le site distant sont conservés dans un fichier temporaire propre au navigateur, sur le `tmpfs` du conteneur. Ils ne sont jamais envoyés au navigateur ni partagés avec un autre visiteur, expirent après inactivité et disparaissent au redémarrage ou avec « Effacer la session ». Les corps POST ne figurent pas dans les journaux ; l’accès à `proxy.php` est exclu du journal Apache.
+
 Consultez [SECURITY.md](SECURITY.md) avant de signaler une vulnérabilité.
 
 ## Limites connues
 
-Un proxy HTML ne peut pas reproduire parfaitement tous les sites. Les applications fortement dépendantes de JavaScript, service workers, WebSockets, authentifications externes, CAPTCHA, protections anti-bot, téléchargements, formulaires POST complexes et vérifications strictes de l’origine peuvent être partiellement ou totalement incompatibles. Les requêtes dynamiques générées dans du JavaScript distant ne sont pas réécrites automatiquement.
+Un proxy HTML ne peut pas reproduire parfaitement tous les sites. Les formulaires de connexion HTML classiques sont pris en charge, mais les applications fortement dépendantes de JavaScript, service workers, WebSockets, OAuth externe, MFA, CAPTCHA, protections anti-bot, téléchargements, formulaires multipart complexes et vérifications strictes de l’origine peuvent être partiellement ou totalement incompatibles. Les requêtes dynamiques générées dans du JavaScript distant ne sont pas réécrites automatiquement.
 
 La largeur d’un panneau reproduit un viewport, mais pas toutes les caractéristiques matérielles d’un appareil réel. Les outils de développement du navigateur restent la référence pour une émulation complète.
 

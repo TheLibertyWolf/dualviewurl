@@ -15,6 +15,7 @@ COPY --chown=www-data:www-data . /var/www/html
 
 RUN find /var/www/html -type d -exec chmod 755 {} + \
     && find /var/www/html -type f -exec chmod 644 {} + \
+    && sed -ri 's#CustomLog (.*) combined#CustomLog \1 combined env=!dontlog#' /etc/apache2/sites-available/*.conf \
     && sed -i '$aServerName dualviewurl-app' /etc/apache2/apache2.conf
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

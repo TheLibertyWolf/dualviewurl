@@ -21,25 +21,40 @@ final class HttpProxy
         private readonly int $connectTimeout = 5,
         private readonly int $totalTimeout = 15,
         private readonly int $maxRedirects = 5,
+        private readonly ?string $cookieFile = null,
     ) {
     }
 
     /** @return array{status:int,mime:string,body:string,url:string,contentRange:?string,acceptRanges:?string} */
-    public function fetch(string $url, string $uaKey, string $theme, ?string $rangeHeader = null): array
+    public function fetch(
+        string $url,
+        string $uaKey,
+        string $theme,
+        ?string $rangeHeader = null,
+        string $method = 'GET',
+        ?string $requestBody = null,
+        ?string $requestContentType = null,
+    ): array
     {
         $userAgent = $this->userAgent($uaKey);
+        $method = strtoupper($method) === 'POST' ? 'POST' : 'GET';
         $range = self::normalizeRange($rangeHeader);
         if ($range === null && self::looksLikeMedia($url)) {
             $range = 'bytes=0-' . (self::MEDIA_CHUNK_BYTES - 1);
         }
         for ($redirects = 0; $redirects <= $this->maxRedirects; $redirects++) {
             $target = $this->guard->validate($url);
-            $response = $this->request($target, $userAgent, $range);
+            $response = $this->request($target, $userAgent, $range, $method, $requestBody, $requestContentType);
             if ($response['location'] !== null && in_array($response['status'], [301, 302, 303, 307, 308], true)) {
                 if ($redirects === $this->maxRedirects) {
                     throw new ProxyException('Trop de redirections.', 502);
                 }
                 $url = Url::resolve($url, $response['location']);
+                if ($response['status'] === 303 || ($method === 'POST' && in_array($response['status'], [301, 302], true))) {
+                    $method = 'GET';
+                    $requestBody = null;
+                    $requestContentType = null;
+                }
                 continue;
             }
 
@@ -64,7 +79,14 @@ final class HttpProxy
     /** @param array{url:string,host:string,port:int,ip:string} $target
      *  @return array{status:int,contentType:string,location:?string,contentRange:?string,acceptRanges:?string,body:string}
      */
-    private function request(array $target, string $userAgent, ?string $range): array
+    private function request(
+        array $target,
+        string $userAgent,
+        ?string $range,
+        string $method,
+        ?string $requestBody,
+        ?string $requestContentType,
+    ): array
     {
         $body = '';
         $headers = [];
@@ -74,6 +96,12 @@ final class HttpProxy
         $requestHeaders = ['Accept: text/html,application/xhtml+xml,text/css,image/avif,image/webp,image/*,video/*,audio/*,*/*;q=0.8', 'Accept-Language: fr,en;q=0.8', 'DNT: 1'];
         if ($range !== null) {
             $requestHeaders[] = 'Range: ' . $range;
+        }
+        $origin = (string) parse_url($target['url'], PHP_URL_SCHEME) . '://' . $target['host'];
+        $requestHeaders[] = 'Origin: ' . $origin;
+        $requestHeaders[] = 'Referer: ' . $target['url'];
+        if ($method === 'POST' && $requestContentType !== null) {
+            $requestHeaders[] = 'Content-Type: ' . $requestContentType;
         }
         curl_setopt_array($ch, [
             CURLOPT_FOLLOWLOCATION => false,
@@ -104,6 +132,14 @@ final class HttpProxy
                 return strlen($chunk);
             },
         ]);
+        if ($this->cookieFile !== null) {
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookieFile);
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookieFile);
+        }
+        if ($method === 'POST') {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody ?? '');
+        }
         $ok = curl_exec($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $error = curl_error($ch);

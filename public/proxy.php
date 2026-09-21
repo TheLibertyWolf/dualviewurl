@@ -5,6 +5,7 @@ use Duoviewurl\HtmlRewriter;
 use Duoviewurl\HttpProxy;
 use Duoviewurl\ProxyException;
 use Duoviewurl\RateLimiter;
+use Duoviewurl\RemoteSession;
 use Duoviewurl\SsrfGuard;
 
 require_once dirname(__DIR__) . '/src/bootstrap.php';
@@ -24,14 +25,43 @@ try {
     $url = (string) ($_GET['url'] ?? '');
     $ua = in_array($_GET['ua'] ?? '', ['desktop', 'iphone', 'ipad', 'android', 'native'], true) ? (string) $_GET['ua'] : 'desktop';
     $theme = in_array($_GET['theme'] ?? '', ['system', 'light', 'dark'], true) ? (string) $_GET['theme'] : 'system';
+    $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+    $body = null;
+    $contentType = null;
+    if ($method === 'POST') {
+        $length = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($length > 2097152) {
+            throw new ProxyException('Le formulaire dépasse la taille maximale autorisée.', 413);
+        }
+        $contentType = strtolower(trim(explode(';', (string) ($_SERVER['CONTENT_TYPE'] ?? ''))[0]));
+        if (!in_array($contentType, ['application/x-www-form-urlencoded', 'application/json', 'text/plain'], true)) {
+            throw new ProxyException('Ce type de formulaire POST n’est pas pris en charge.', 415);
+        }
+        $body = file_get_contents('php://input');
+        if (!is_string($body)) {
+            throw new ProxyException('Le formulaire transmis est illisible.');
+        }
+    } else {
+        $method = 'GET';
+    }
     $proxy = new HttpProxy(
         new SsrfGuard(),
         new HtmlRewriter(),
         max(1048576, (int) (getenv('DUOVIEW_MAX_BYTES') ?: 10485760)),
         max(1, (int) (getenv('DUOVIEW_CONNECT_TIMEOUT') ?: 5)),
         max(2, (int) (getenv('DUOVIEW_TOTAL_TIMEOUT') ?: 15)),
+        5,
+        RemoteSession::cookieFile(),
     );
-    $response = $proxy->fetch($url, $ua, $theme, isset($_SERVER['HTTP_RANGE']) ? (string) $_SERVER['HTTP_RANGE'] : null);
+    $response = $proxy->fetch(
+        $url,
+        $ua,
+        $theme,
+        isset($_SERVER['HTTP_RANGE']) ? (string) $_SERVER['HTTP_RANGE'] : null,
+        $method,
+        $body,
+        $contentType,
+    );
     http_response_code($response['status']);
     header('Content-Type: ' . $response['mime'] . (str_starts_with($response['mime'], 'text/') ? '; charset=utf-8' : ''));
     header('X-Duoviewurl-Url: ' . rawurlencode($response['url']));

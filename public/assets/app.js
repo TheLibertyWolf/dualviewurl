@@ -180,6 +180,18 @@
     try { await navigator.clipboard.writeText(location.href); toast('Lien de partage copié'); }
     catch { toast('Copiez l’adresse affichée par le navigateur.'); }
   });
+  $('#clear-session').addEventListener('click', async () => {
+    try {
+      const response = await fetch('/session.php', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-Duoviewurl-Action': 'clear-session' },
+      });
+      if (!response.ok) throw new Error('session');
+      toast('Session distante effacée');
+      if (currentUrl) panels.forEach(panel => loadPanel(panel, currentUrl));
+    } catch { toast('Impossible d’effacer la session.'); }
+  });
   sync.addEventListener('change', savePreferences);
   remember.addEventListener('change', () => {
     if (remember.checked) savePreferences(); else localStorage.removeItem('duoviewurl.preferences');
