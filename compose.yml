@@ -1,0 +1,34 @@
+name: dualurlview
+
+services:
+  app:
+    build:
+      context: .
+    container_name: dualviewurl-app
+    restart: unless-stopped
+    environment:
+      DUOVIEW_RATE_LIMIT: "90"
+      DUOVIEW_MAX_BYTES: "10485760"
+      DUOVIEW_CONNECT_TIMEOUT: "5"
+      DUOVIEW_TOTAL_TIMEOUT: "15"
+    networks:
+      - proxy
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+      - /var/run/apache2:size=1m,mode=755
+      - /var/lock/apache2:size=1m,mode=755
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+      - CHOWN
+
+networks:
+  proxy:
+    external: true
+    name: npm_default

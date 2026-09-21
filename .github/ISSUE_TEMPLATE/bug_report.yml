@@ -1,0 +1,30 @@
+name: Signaler un bug
+description: Signaler un comportement reproductible de Duoviewurl
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Que se passe-t-il et quel résultat attendiez-vous ?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Étapes de reproduction
+      placeholder: "1. Ouvrir…\n2. Saisir…\n3. Constater…"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Navigateur et version
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Informations complémentaires
+      description: Ne publiez jamais de jeton, mot de passe ou URL privée.

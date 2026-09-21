@@ -1,0 +1,9 @@
+.DS_Store
+.idea/
+.vscode/
+coverage/
+vendor/
+*.log
+.env
+.env.*
+!.env.example

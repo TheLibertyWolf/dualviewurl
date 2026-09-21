@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire l’image
+        run: docker build -t duoviewurl:test .
+      - name: Vérifier la syntaxe PHP
+        run: docker run --rm duoviewurl:test sh -c "find /var/www/html/src /var/www/html/public -name '*.php' -print0 | xargs -0 -n1 php -l"
+      - name: Exécuter les tests
+        run: docker run --rm --entrypoint php duoviewurl:test /var/www/html/tests/run.php
+      - name: Vérifier la configuration Compose
+        run: docker compose config --quiet

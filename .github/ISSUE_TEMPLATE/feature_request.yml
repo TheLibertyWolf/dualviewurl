@@ -1,0 +1,22 @@
+name: Demander une fonctionnalité
+description: Proposer une amélioration de Duoviewurl
+title: "[Fonctionnalité] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin
+      description: Quel problème concret souhaitez-vous résoudre ?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution envisagée
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080d1c">
+  <meta name="description" content="Affichez une URL simultanément dans une vue ordinateur et une vue mobile.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Duoviewurl — Deux viewports, une URL</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Aller aux aperçus</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Duoviewurl, accueil">
+      <svg aria-hidden="true" viewBox="0 0 42 32"><rect x="2" y="2" width="25" height="19" rx="3"/><rect x="16" y="11" width="24" height="19" rx="3"/><path d="M11 26h18"/></svg>
+      <span>DUO<span>VIEW</span>URL</span>
+    </a>
+    <form id="url-form" class="url-form" novalidate>
+      <label class="sr-only" for="url-input">URL à afficher</label>
+      <span class="protocol" aria-hidden="true">↗</span>
+      <input id="url-input" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="example.com" aria-describedby="url-error">
+      <button class="primary" type="submit">Afficher</button>
+      <span id="url-error" class="field-error" role="alert"></span>
+    </form>
+    <div class="global-actions">
+      <button id="swap" class="icon-button text-button" type="button" title="Inverser les panneaux"><span aria-hidden="true">⇄</span><span>Inverser</span></button>
+      <button id="share" class="icon-button text-button" type="button" title="Copier le lien de partage"><span aria-hidden="true">⌁</span><span>Partager</span></button>
+      <label class="toggle" title="Synchroniser les liens suivis">
+        <input id="sync" type="checkbox" checked>
+        <span aria-hidden="true"></span>
+        Liens synchronisés
+      </label>
+      <label class="toggle" title="Mémoriser les préférences sur cet appareil">
+        <input id="remember" type="checkbox">
+        <span aria-hidden="true"></span>
+        Mémoriser
+      </label>
+    </div>
+  </header>
+
+  <main id="workspace" class="workspace">
+    <section class="panel panel-desktop" data-panel="desktop" aria-labelledby="desktop-title">
+      <div class="panel-toolbar">
+        <div class="panel-identity">
+          <span class="panel-dot" aria-hidden="true"></span>
+          <div><h1 id="desktop-title">Ordinateur</h1><output class="dimensions" aria-live="polite">— × —</output></div>
+        </div>
+        <div class="panel-controls">
+          <label>User-Agent
+            <select class="ua-select" aria-label="User-Agent de la vue ordinateur">
+              <option value="desktop">Chrome desktop</option>
+              <option value="iphone">Safari iPhone</option>
+              <option value="native">Navigateur natif</option>
+            </select>
+          </label>
+          <label>Thème
+            <select class="theme-select" aria-label="Thème de la vue ordinateur">
+              <option value="system">Système</option>
+              <option value="light">Clair</option>
+              <option value="dark">Sombre</option>
+            </select>
+          </label>
+          <button class="reload icon-button" type="button" title="Recharger la vue ordinateur" aria-label="Recharger la vue ordinateur">↻</button>
+        </div>
+      </div>
+      <div class="viewport-wrap">
+        <div class="empty-state">
+          <div class="empty-icon desktop-icon" aria-hidden="true">▱</div>
+          <h2>Vue ordinateur</h2>
+          <p>Saisissez une adresse pour inspecter le rendu large du site.</p>
+        </div>
+        <div class="loading-state" hidden><span class="spinner"></span><span>Chargement de la vue…</span></div>
+        <iframe title="Aperçu ordinateur" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" referrerpolicy="no-referrer" hidden></iframe>
+      </div>
+    </section>
+
+    <div id="divider" class="divider" role="separator" aria-label="Redimensionner les panneaux" aria-orientation="vertical" aria-valuemin="25" aria-valuemax="75" aria-valuenow="62" tabindex="0"><span aria-hidden="true">•••</span></div>
+
+    <section class="panel panel-mobile" data-panel="mobile" aria-labelledby="mobile-title">
+      <div class="panel-toolbar">
+        <div class="panel-identity">
+          <span class="panel-dot" aria-hidden="true"></span>
+          <div><h1 id="mobile-title">Mobile</h1><output class="dimensions" aria-live="polite">— × —</output></div>
+        </div>
+        <div class="panel-controls">
+          <label>User-Agent
+            <select class="ua-select" aria-label="User-Agent de la vue mobile">
+              <option value="iphone">Safari iPhone</option>
+              <option value="desktop">Chrome desktop</option>
+              <option value="native">Navigateur natif</option>
+            </select>
+          </label>
+          <label>Thème
+            <select class="theme-select" aria-label="Thème de la vue mobile">
+              <option value="system">Système</option>
+              <option value="light">Clair</option>
+              <option value="dark">Sombre</option>
+            </select>
+          </label>
+          <button class="reload icon-button" type="button" title="Recharger la vue mobile" aria-label="Recharger la vue mobile">↻</button>
+        </div>
+      </div>
+      <div class="viewport-wrap">
+        <div class="empty-state">
+          <div class="empty-icon mobile-icon" aria-hidden="true">▯</div>
+          <h2>Vue mobile</h2>
+          <p>La même page apparaîtra ici avec un navigateur iPhone.</p>
+        </div>
+        <div class="loading-state" hidden><span class="spinner"></span><span>Chargement de la vue…</span></div>
+        <iframe title="Aperçu mobile" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" referrerpolicy="no-referrer" hidden></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer class="statusbar">
+    <span><i class="status-dot" aria-hidden="true"></i><span id="status" role="status" aria-live="polite">Prêt</span></span>
+    <span>Proxy sécurisé · HTTP(S) uniquement</span>
+    <button id="help" type="button">Limites connues</button>
+  </footer>
+
+  <dialog id="help-dialog">
+    <form method="dialog"><button class="dialog-close" aria-label="Fermer">×</button></form>
+    <h2>Compatibilité du proxy</h2>
+    <p>Duoviewurl privilégie la sécurité. Certains sites ne peuvent donc pas fonctionner parfaitement dans un proxy.</p>
+    <ul><li>applications JavaScript complexes, service workers et WebSockets ;</li><li>authentifications externes, CAPTCHA et protections anti-bot ;</li><li>formulaires POST complexes, téléchargements et contrôles stricts de l’origine.</li></ul>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
