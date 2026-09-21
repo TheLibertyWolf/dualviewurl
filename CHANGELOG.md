@@ -2,6 +2,12 @@
 
 Les changements notables de Duoviewurl sont documentés ici selon [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [1.0.1] - 2026-09-21
+
+### Corrigé
+
+- respect explicite de l’attribut `hidden` pour ne pas afficher l’état de chargement avant la saisie d’une URL.
+
 ## [1.0.0] - 2026-09-21
 
 ### Ajouté
@@ -16,4 +22,5 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - déploiement Docker isolé derrière Nginx Proxy Manager ;
 - tests automatisés et workflow CI.
 
+[1.0.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.0.1
 [1.0.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.0.0

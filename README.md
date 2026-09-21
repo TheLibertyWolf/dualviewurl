@@ -1,6 +1,6 @@
 # Duoviewurl
 
-[![Version](https://img.shields.io/badge/version-1.0.0-2271b1)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.1-2271b1)](CHANGELOG.md)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D%208.2-777bb4)](https://www.php.net/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e)](https://developer.mozilla.org/fr/docs/Web/JavaScript)
 [![Licence](https://img.shields.io/badge/licence-MIT-46b450)](LICENSE)
