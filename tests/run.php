@@ -77,6 +77,16 @@ test('réécrit HTML et conserve la destination des liens', function (): void {
     assertTrue(!str_contains($html, 'integrity='), 'Le hash SRI doit être retiré après réécriture.');
     assertTrue(!str_contains($html, 'crossorigin='), 'Le mode crossorigin distant doit être retiré.');
 });
+test('renvoie les formulaires sans action vers la page distante finale', function (): void {
+    $html = (new HtmlRewriter())->rewrite(
+        '<html><body><form method="post" action=""><input name="otp"></form><form method="post"><input name="code"></form></body></html>',
+        'https://example.com/auth/verify-2fa.php',
+        'desktop',
+        'light',
+    );
+    assertTrue(substr_count($html, 'data-duoviewurl-action="https://example.com/auth/verify-2fa.php"') === 2);
+    assertTrue(substr_count($html, 'url=https%3A%2F%2Fexample.com%2Fauth%2Fverify-2fa.php') === 2);
+});
 test('réécrit les url CSS', function (): void {
     $css = (new HtmlRewriter())->rewriteCss('@import "theme.css";body{background:url(../bg.png)}', 'https://example.com/css/main.css', 'iphone', 'light');
     assertTrue(str_contains($css, 'url=https%3A%2F%2Fexample.com%2Fbg.png'));

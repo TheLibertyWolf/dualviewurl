@@ -2,6 +2,12 @@
 
 Les changements notables de Duoviewurl sont documentés ici selon [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [1.2.3] - 2026-09-21
+
+### Corrigé
+
+- envoi des formulaires POST sans action explicite vers la véritable URL distante après une redirection, notamment pour la seconde étape 2FA.
+
 ## [1.2.2] - 2026-09-21
 
 ### Corrigé
@@ -74,6 +80,7 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - déploiement Docker isolé derrière Nginx Proxy Manager ;
 - tests automatisés et workflow CI.
 
+[1.2.3]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.3
 [1.2.2]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.2
 [1.2.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.1
 [1.2.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.0

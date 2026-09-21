@@ -35,6 +35,12 @@ final class HtmlRewriter
                     continue;
                 }
                 foreach ($attributes as $attribute) {
+                    if ($tag === 'form' && $attribute === 'action'
+                        && (!$node->hasAttribute($attribute) || trim($node->getAttribute($attribute)) === '')) {
+                        $node->setAttribute('data-duoviewurl-action', $effectiveBase);
+                        $node->setAttribute($attribute, $this->proxyUrl($effectiveBase, $ua, $theme));
+                        continue;
+                    }
                     if (!$node->hasAttribute($attribute)) {
                         continue;
                     }
