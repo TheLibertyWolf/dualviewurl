@@ -6,7 +6,17 @@ use Duoviewurl\HttpProxy;
 use Duoviewurl\ProxyException;
 use Duoviewurl\SsrfGuard;
 use Duoviewurl\Url;
+use Duoviewurl\Database;
 
+$testDatabase = '/tmp/dualviewurl-tests-' . getmypid() . '.sqlite';
+putenv('DUOVIEW_DB_PATH=' . $testDatabase);
+register_shutdown_function(static function () use ($testDatabase): void {
+    foreach ([$testDatabase, $testDatabase . '-wal', $testDatabase . '-shm'] as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+});
 require_once dirname(__DIR__) . '/src/bootstrap.php';
 
 $passed = 0;
@@ -103,6 +113,33 @@ test('borne les requêtes média à des segments de 4 Mio', function (): void {
     assertTrue(HttpProxy::normalizeRange('bytes=1000-9999999') === 'bytes=1000-4195303');
     assertTrue(HttpProxy::normalizeRange('bytes=500-100') === null);
     assertTrue(HttpProxy::normalizeRange('bytes=0-10,20-30') === null);
+});
+test('initialise la base SQLite et ses tables applicatives', function (): void {
+    $tables = Database::connection()->query("SELECT name FROM sqlite_master WHERE type = 'table'")->fetchAll(PDO::FETCH_COLUMN);
+    foreach (['users', 'settings', 'remember_tokens', 'proxy_tokens', 'history'] as $table) {
+        assertTrue(in_array($table, $tables, true), "Table manquante : {$table}");
+    }
+});
+test('enregistre les réglages persistants', function (): void {
+    Database::setSetting('test_key', 'test_value');
+    assertTrue(Database::setting('test_key') === 'test_value');
+    Database::setSetting('test_key', 'updated');
+    assertTrue(Database::setting('test_key') === 'updated');
+});
+test('isole l historique par utilisateur', function (): void {
+    $pdo = Database::connection();
+    $now = time();
+    $create = $pdo->prepare('INSERT INTO users(username, password_hash, is_admin, is_active, created_at, updated_at) VALUES(?, ?, 0, 1, ?, ?)');
+    $create->execute(['alice', password_hash('testing-password', PASSWORD_DEFAULT), $now, $now]);
+    $alice = (int) $pdo->lastInsertId();
+    $create->execute(['bob', password_hash('testing-password', PASSWORD_DEFAULT), $now, $now]);
+    $bob = (int) $pdo->lastInsertId();
+    $insert = $pdo->prepare('INSERT INTO history(user_id, url, visit_count, last_visited_at) VALUES(?, ?, 1, ?)');
+    $insert->execute([$alice, 'https://alice.example/', $now]);
+    $insert->execute([$bob, 'https://bob.example/', $now]);
+    $query = $pdo->prepare('SELECT url FROM history WHERE user_id = ?');
+    $query->execute([$alice]);
+    assertTrue($query->fetchAll(PDO::FETCH_COLUMN) === ['https://alice.example/']);
 });
 
 echo "\n{$passed} test(s) réussi(s), {$failed} échec(s).\n";

@@ -10,6 +10,9 @@
   const remember = $('#remember');
   const status = $('#status');
   const proxyOrigin = new URL(document.documentElement.dataset.proxyOrigin || location.origin, location.href).origin;
+  const proxyTicket = document.documentElement.dataset.proxyTicket || '';
+  const csrf = document.documentElement.dataset.csrf || '';
+  const isAdmin = document.documentElement.dataset.isAdmin === '1';
   let currentUrl = '';
   let dragging = false;
   let suppressSync = false;
@@ -46,7 +49,24 @@
 
   function proxyUrl(url, panel) {
     const data = panelData(panel);
-    return `${proxyOrigin}/proxy.php?${new URLSearchParams({ url, ua: selectedDevice(panel).ua, theme: data.theme.value })}`;
+    return `${proxyOrigin}/bridge.php?${new URLSearchParams({ ticket: proxyTicket, url, ua: selectedDevice(panel).ua, theme: data.theme.value })}`;
+  }
+
+  async function api(action, options = {}) {
+    const [actionName, query = ''] = action.split('?', 2);
+    const settings = { credentials: 'same-origin', ...options };
+    if (settings.body && typeof settings.body !== 'string') {
+      settings.headers = { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf, ...(settings.headers || {}) };
+      settings.body = JSON.stringify({ ...settings.body, csrf });
+    }
+    const response = await fetch(`/api.php?action=${encodeURIComponent(actionName)}${query ? `&${query}` : ''}`, settings);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'La requête a échoué.');
+    return payload;
+  }
+
+  function recordHistory(url) {
+    api('history_add', { method: 'POST', body: { url } }).catch(() => {});
   }
 
   function loadPanel(panel, url) {
@@ -67,6 +87,7 @@
     status.textContent = `Chargement · ${new URL(url).hostname}`;
     updateShareUrl();
     savePreferences();
+    if (!sourcePanel) recordHistory(url);
   }
 
   function updateShareUrl() {
@@ -139,6 +160,19 @@
     event.preventDefault();
     try { load(normalizeUrl(input.value)); } catch (error) { $('#url-error').textContent = error.message; input.focus(); }
   });
+  let suggestionTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(suggestionTimer);
+    suggestionTimer = setTimeout(async () => {
+      try {
+        const payload = await api(`history?q=${encodeURIComponent(input.value.trim())}`);
+        const datalist = $('#history-suggestions');
+        datalist.replaceChildren(...payload.history.map(item => {
+          const option = document.createElement('option'); option.value = item.url; return option;
+        }));
+      } catch { /* Les suggestions ne doivent jamais bloquer la saisie. */ }
+    }, 140);
+  });
   panels.forEach(panel => {
     const data = panelData(panel);
     data.frame.addEventListener('load', () => { data.loading.hidden = true; status.textContent = `Affiché · ${new URL(currentUrl).hostname}`; });
@@ -194,6 +228,18 @@
       if (currentUrl) panels.forEach(panel => loadPanel(panel, currentUrl));
     } catch { toast('Impossible d’effacer la session.'); }
   });
+  $('#clear-history').addEventListener('click', async () => {
+    if (!confirm('Supprimer tout votre historique Duoviewurl ?')) return;
+    try {
+      await api('history_clear', { method: 'POST', body: {} });
+      $('#history-suggestions').replaceChildren();
+      toast('Historique supprimé');
+    } catch (error) { toast(error.message); }
+  });
+  $('#logout').addEventListener('click', async () => {
+    try { await api('logout', { method: 'POST', body: {} }); } catch { /* La redirection termine aussi la session locale. */ }
+    location.assign('/login.php');
+  });
   sync.addEventListener('change', savePreferences);
   remember.addEventListener('change', () => {
     if (remember.checked) savePreferences(); else localStorage.removeItem('duoviewurl.preferences');
@@ -224,6 +270,7 @@
     try {
       const target = normalizeUrl(event.data.url);
       currentUrl = target; input.value = target; updateShareUrl();
+      recordHistory(target);
       if (sync.checked) {
         suppressSync = true;
         panels.filter(panel => panel !== sourcePanel).forEach(panel => loadPanel(panel, target));
@@ -233,6 +280,81 @@
     } catch { /* Le serveur validera également toutes les destinations. */ }
   });
   $('#help').addEventListener('click', () => $('#help-dialog').showModal());
+
+  const adminButton = $('#admin-open');
+  adminButton.hidden = !isAdmin;
+  const adminDialog = $('#admin-dialog');
+  const userForm = $('#user-form');
+  let adminUsers = [];
+  function showAdminError(message = '') {
+    const node = $('#admin-error'); node.textContent = message; node.hidden = !message;
+  }
+  function editUser(user = null) {
+    userForm.hidden = false;
+    $('#user-id').value = user?.id || '';
+    $('#user-username').value = user?.username || '';
+    $('#user-password').value = '';
+    $('#user-password').required = !user;
+    $('#user-admin').checked = Boolean(user?.is_admin ?? false);
+    $('#user-active').checked = Boolean(user?.is_active ?? true);
+    $('#user-username').focus();
+  }
+  function renderUsers() {
+    const body = $('#users-list'); body.replaceChildren();
+    adminUsers.forEach(user => {
+      const row = document.createElement('tr');
+      const username = document.createElement('td'); username.textContent = user.username;
+      const role = document.createElement('td'); role.textContent = Number(user.is_admin) ? 'Admin' : 'Utilisateur';
+      const state = document.createElement('td'); state.textContent = Number(user.is_active) ? 'Actif' : 'Désactivé';
+      const last = document.createElement('td'); last.textContent = user.last_login_at ? new Date(Number(user.last_login_at) * 1000).toLocaleString('fr-FR') : 'Jamais';
+      const actions = document.createElement('td'); actions.className = 'row-actions';
+      const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'Modifier'; edit.addEventListener('click', () => editUser(user));
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Supprimer'; remove.disabled = user.username === document.documentElement.dataset.username;
+      remove.addEventListener('click', async () => {
+        if (!confirm(`Supprimer le compte ${user.username} et son historique ?`)) return;
+        try { await api('admin_user_delete', { method: 'POST', body: { id: user.id } }); await loadAdmin(); }
+        catch (error) { showAdminError(error.message); }
+      });
+      actions.append(edit, remove); row.append(username, role, state, last, actions); body.append(row);
+    });
+  }
+  async function loadAdmin() {
+    showAdminError();
+    const [usersPayload, settingsPayload] = await Promise.all([api('admin_users'), api('admin_settings')]);
+    adminUsers = usersPayload.users; renderUsers();
+    const turnstile = settingsPayload.turnstile;
+    $('#turnstile-enabled').checked = Boolean(turnstile.enabled);
+    $('#turnstile-site-key').value = turnstile.site_key || '';
+    $('#turnstile-secret-key').value = '';
+    $('#turnstile-secret-status').textContent = turnstile.secret_configured ? 'Une clé secrète est enregistrée.' : 'Aucune clé secrète enregistrée.';
+  }
+  adminButton.addEventListener('click', async () => {
+    adminDialog.showModal();
+    try { await loadAdmin(); } catch (error) { showAdminError(error.message); }
+  });
+  $('#new-user').addEventListener('click', () => editUser());
+  $('#cancel-user').addEventListener('click', () => { userForm.hidden = true; showAdminError(); });
+  userForm.addEventListener('submit', async event => {
+    event.preventDefault(); showAdminError();
+    try {
+      await api('admin_user_save', { method: 'POST', body: {
+        id: $('#user-id').value || 0, username: $('#user-username').value, password: $('#user-password').value,
+        is_admin: $('#user-admin').checked, is_active: $('#user-active').checked,
+      } });
+      userForm.hidden = true; await loadAdmin(); toast('Utilisateur enregistré');
+    } catch (error) { showAdminError(error.message); }
+  });
+  $('#turnstile-form').addEventListener('submit', async event => {
+    event.preventDefault(); showAdminError();
+    try {
+      await api('admin_settings_save', { method: 'POST', body: {
+        enabled: $('#turnstile-enabled').checked,
+        site_key: $('#turnstile-site-key').value,
+        secret_key: $('#turnstile-secret-key').value,
+      } });
+      await loadAdmin(); toast('Réglages Turnstile enregistrés');
+    } catch (error) { showAdminError(error.message); }
+  });
   new ResizeObserver(updateDimensions).observe(workspace);
   window.addEventListener('resize', updateDimensions);
 

@@ -1,0 +1,15 @@
+{
+  "name": "Duoviewurl",
+  "short_name": "Duoviewurl",
+  "description": "Comparez deux vues d’une URL simultanément.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070b17",
+  "theme_color": "#080d1c",
+  "lang": "fr",
+  "icons": [
+    { "src": "/assets/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

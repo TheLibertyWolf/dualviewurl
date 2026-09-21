@@ -1,6 +1,6 @@
 # Duoviewurl
 
-[![Version](https://img.shields.io/badge/version-1.2.3-2271b1)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-2271b1)](CHANGELOG.md)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D%208.2-777bb4)](https://www.php.net/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e)](https://developer.mozilla.org/fr/docs/Web/JavaScript)
 [![Licence](https://img.shields.io/badge/licence-MIT-46b450)](LICENSE)
@@ -18,6 +18,10 @@ L’écran principal est immédiatement utilisable : une barre d’URL, deux pan
 ## Fonctionnalités
 
 - ajout automatique de `https://` lorsque le protocole manque ;
+- accès protégé par compte, avec session sécurisée et option « Se souvenir de moi » pendant 30 jours ;
+- administration des utilisateurs et des clés Cloudflare Turnstile depuis une fenêtre dédiée ;
+- historique privé par utilisateur, suggestions pendant la saisie et suppression à la demande ;
+- installation en Progressive Web App (PWA) ;
 - vues ordinateur et mobile chargées simultanément ;
 - séparateur redimensionnable à la souris, au tactile et au clavier ;
 - dimensions réelles actualisées en direct ;
@@ -62,9 +66,10 @@ Pour une installation PHP sans Docker : PHP 8.2 ou supérieur, Apache, cURL et D
 git clone git@github.com:TheLibertyWolf/dualviewurl.git
 cd dualviewurl
 docker compose up -d --build
+docker exec -u www-data -it dualviewurl-app php /var/www/html/bin/create-user.php admin 'un-mot-de-passe-long' admin
 ```
 
-La stack s’appelle `dualurlview`. Elle n’expose aucun port hôte ; Nginx Proxy Manager joint `dualviewurl-app` sur le port interne 80. Voir [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) pour le Proxy Host et TLS.
+La stack s’appelle `dualurlview`. Elle n’expose aucun port hôte ; Nginx Proxy Manager joint `dualviewurl-app` sur le port interne 80. SQLite est embarqué dans le conteneur et son fichier est conservé dans le volume Docker `dualurlview_data` : il n’existe donc pas de second conteneur de base de données. Voir [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) pour le Proxy Host et TLS.
 
 ## Configuration
 
@@ -74,6 +79,7 @@ La stack s’appelle `dualurlview`. Elle n’expose aucun port hôte ; Nginx Pro
 | `DUOVIEW_MAX_BYTES` | `10485760` | taille maximale d’une réponse distante |
 | `DUOVIEW_CONNECT_TIMEOUT` | `5` | délai de connexion en secondes |
 | `DUOVIEW_TOTAL_TIMEOUT` | `15` | durée totale maximale en secondes |
+| `DUOVIEW_DB_PATH` | `/var/lib/dualviewurl/dualviewurl.sqlite` | emplacement de la base SQLite persistante |
 
 ## Utilisation
 
@@ -84,6 +90,8 @@ La stack s’appelle `dualurlview`. Elle n’expose aucun port hôte ; Nginx Pro
 5. Utiliser « Partager » pour copier une URL contenant la destination encodée.
 
 ## Sécurité
+
+L’interface, l’API et le proxy exigent une session authentifiée. Les mots de passe sont hachés avec l’algorithme PHP recommandé, les actions d’écriture sont protégées par jeton CSRF, les connexions sont limitées en débit et les clés Turnstile restent côté serveur.
 
 Le proxy refuse les schémas autres que HTTP(S), les identifiants intégrés, les ports autres que 80/443, les hôtes locaux et toute adresse IPv4 ou IPv6 privée, réservée, loopback, link-local ou multicast. Toutes les réponses DNS sont contrôlées ; une seule adresse interdite fait refuser le domaine. Chaque redirection repasse par le même contrôle.
 
@@ -106,7 +114,7 @@ docker build -t duoviewurl:test .
 docker run --rm --entrypoint php duoviewurl:test /var/www/html/tests/run.php
 ```
 
-La suite couvre notamment les URL HTTP(S), ports interdits, identifiants, localhost, plages privées IPv4, plages locales IPv6, résolution DNS mixte, résolution des chemins relatifs et réécriture HTML/CSS. GitHub Actions reconstruit l’image, contrôle la syntaxe PHP et exécute ces tests à chaque push et pull request.
+La suite couvre notamment les URL HTTP(S), ports interdits, identifiants, localhost, plages privées IPv4, plages locales IPv6, résolution DNS mixte, résolution des chemins relatifs, réécriture HTML/CSS, schéma SQLite, réglages persistants et isolation des historiques. GitHub Actions reconstruit l’image, contrôle la syntaxe PHP et exécute ces tests à chaque push et pull request.
 
 ## Contribution et support
 

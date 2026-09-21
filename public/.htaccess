@@ -1,11 +1,14 @@
 Options -Indexes
-SetEnvIf Request_URI "^/(proxy|session)\.php$" isolated_endpoint
-SetEnvIf Request_URI "^/proxy\.php$" dontlog
+DirectoryIndex index.php
+SetEnvIf Request_URI "^/(proxy|session|bridge)\.php$" isolated_endpoint
+SetEnvIf Request_URI "^/(proxy|bridge)\.php$" dontlog
 
 RewriteEngine On
 RewriteCond %{HTTP_HOST} ^dualviewurl-view\.jessysystem\.com$ [NC]
-RewriteCond %{REQUEST_URI} !^/(proxy|session)\.php$ [NC]
+RewriteCond %{REQUEST_URI} !^/(proxy|session|bridge)\.php$ [NC]
 RewriteRule ^ - [R=404,L]
+RewriteCond %{HTTP_HOST} !^dualviewurl-view\.jessysystem\.com$ [NC]
+RewriteRule ^index\.html$ index.php [END]
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

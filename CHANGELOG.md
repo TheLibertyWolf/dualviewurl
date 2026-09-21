@@ -2,6 +2,21 @@
 
 Les changements notables de Duoviewurl sont documentés ici selon [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [2.0.0] - 2026-09-21
+
+### Ajouté
+
+- authentification obligatoire, option « Se souvenir de moi » et limitation des tentatives de connexion ;
+- administration des comptes dans une fenêtre modale ;
+- configuration facultative de Cloudflare Turnstile depuis l’administration ;
+- historique SQLite isolé par utilisateur, autocomplétion et suppression intégrale ;
+- PWA installable avec manifeste, service worker et page hors ligne ;
+- volume Docker persistant `dualurlview_data` pour la base SQLite.
+
+### Sécurité
+
+- protection CSRF des mutations, cookies sécurisés et tickets temporaires entre l’interface et l’origine d’aperçu.
+
 ## [1.2.3] - 2026-09-21
 
 ### Corrigé
@@ -80,6 +95,7 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - déploiement Docker isolé derrière Nginx Proxy Manager ;
 - tests automatisés et workflow CI.
 
+[2.0.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v2.0.0
 [1.2.3]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.3
 [1.2.2]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.2
 [1.2.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.1

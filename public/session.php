@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 use Duoviewurl\RemoteSession;
+use Duoviewurl\Auth;
+use Duoviewurl\AuthException;
 
 require_once dirname(__DIR__) . '/src/bootstrap.php';
 
@@ -20,6 +22,14 @@ if ($origin === 'https://dualviewurl.jessysystem.com') {
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code($origin === 'https://dualviewurl.jessysystem.com' ? 204 : 403);
+    exit;
+}
+
+try {
+    Auth::requireProxy();
+} catch (AuthException $error) {
+    http_response_code($error->httpStatus);
+    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
     exit;
 }
 

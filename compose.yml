@@ -4,6 +4,7 @@ services:
   app:
     build:
       context: .
+    command: ["sh", "-c", "chown root:root /var/lib/dualviewurl && chmod 750 /var/lib/dualviewurl && chown www-data:www-data /var/lib/dualviewurl && exec apache2-foreground"]
     container_name: dualviewurl-app
     restart: unless-stopped
     environment:
@@ -11,6 +12,7 @@ services:
       DUOVIEW_MAX_BYTES: "10485760"
       DUOVIEW_CONNECT_TIMEOUT: "5"
       DUOVIEW_TOTAL_TIMEOUT: "15"
+      DUOVIEW_DB_PATH: "/var/lib/dualviewurl/dualviewurl.sqlite"
     networks:
       - proxy
     read_only: true
@@ -18,6 +20,8 @@ services:
       - /tmp:size=32m,mode=1777
       - /var/run/apache2:size=1m,mode=755
       - /var/lock/apache2:size=1m,mode=755
+    volumes:
+      - data:/var/lib/dualviewurl
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -32,3 +36,6 @@ networks:
   proxy:
     external: true
     name: npm_default
+
+volumes:
+  data:

@@ -1,15 +1,20 @@
 <!doctype html>
-<html lang="fr" data-proxy-origin="https://dualviewurl-view.jessysystem.com">
+<html lang="fr" data-proxy-origin="https://dualviewurl-view.jessysystem.com" data-proxy-ticket="{{PROXY_TICKET}}" data-csrf="{{CSRF_TOKEN}}" data-username="{{USERNAME}}" data-is-admin="{{IS_ADMIN}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#080d1c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Affichez une URL simultanément dans une vue ordinateur et une vue mobile.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self' https://dualviewurl-view.jessysystem.com; connect-src 'self' https://dualviewurl-view.jessysystem.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Duoviewurl — Deux viewports, une URL</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/app.css?v=1.2.3">
-  <script src="/assets/app.js?v=1.2.3" defer></script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/app-icon.svg">
+  <link rel="stylesheet" href="/assets/app.css?v=2.0.0">
+  <script src="/assets/app.js?v=2.0.0" defer></script>
+  <script src="/register-sw.js?v=2.0.0" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">Aller aux aperçus</a>
@@ -21,7 +26,8 @@
     <form id="url-form" class="url-form" novalidate>
       <label class="sr-only" for="url-input">URL à afficher</label>
       <span class="protocol" aria-hidden="true">↗</span>
-      <input id="url-input" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="example.com" aria-describedby="url-error">
+      <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" list="history-suggestions" spellcheck="false" placeholder="example.com" aria-describedby="url-error">
+      <datalist id="history-suggestions"></datalist>
       <button class="primary" type="submit">Afficher</button>
       <span id="url-error" class="field-error" role="alert"></span>
     </form>
@@ -38,6 +44,8 @@
         <span aria-hidden="true"></span>
         Mémoriser
       </label>
+      <button id="admin-open" class="icon-button text-button" type="button" title="Administration"><span aria-hidden="true">⚙</span><span>Admin</span></button>
+      <button id="logout" class="icon-button text-button" type="button" title="Se déconnecter"><span class="user-dot" aria-hidden="true"></span><span>{{USERNAME}}</span></button>
     </div>
   </header>
 
@@ -130,7 +138,7 @@
   <footer class="statusbar">
     <span><i class="status-dot" aria-hidden="true"></i><span id="status" role="status" aria-live="polite">Prêt</span></span>
     <span class="footer-credit">© 2026 Jessy System · <a href="https://github.com/TheLibertyWolf/dualviewurl" target="_blank" rel="noopener noreferrer">GitHub</a></span>
-    <span class="footer-actions"><span>Session privée · HTTP(S)</span><button id="clear-session" type="button">Effacer la session</button><button id="help" type="button">Limites connues</button></span>
+    <span class="footer-actions"><span>Session privée · HTTP(S)</span><button id="clear-history" type="button">Effacer l’historique</button><button id="clear-session" type="button">Effacer la session</button><button id="help" type="button">Limites connues</button></span>
   </footer>
 
   <dialog id="help-dialog">
@@ -138,6 +146,35 @@
     <h2>Compatibilité du proxy</h2>
     <p>Duoviewurl privilégie la sécurité. Certains sites ne peuvent donc pas fonctionner parfaitement dans un proxy.</p>
     <ul><li>applications JavaScript complexes, service workers et WebSockets ;</li><li>authentifications externes, CAPTCHA et protections anti-bot ;</li><li>formulaires POST complexes, téléchargements et contrôles stricts de l’origine.</li></ul>
+  </dialog>
+
+  <dialog id="admin-dialog" class="admin-dialog">
+    <form method="dialog"><button class="dialog-close" aria-label="Fermer">×</button></form>
+    <h2>Administration</h2>
+    <div class="admin-grid">
+      <section>
+        <div class="section-heading"><div><span class="eyebrow">COMPTES</span><h3>Utilisateurs</h3></div><button id="new-user" type="button">Nouvel utilisateur</button></div>
+        <div class="table-wrap"><table class="users-table"><thead><tr><th>Identifiant</th><th>Rôle</th><th>État</th><th>Dernière connexion</th><th></th></tr></thead><tbody id="users-list"></tbody></table></div>
+        <form id="user-form" class="admin-form" hidden>
+          <input id="user-id" type="hidden">
+          <label>Identifiant<input id="user-username" required minlength="3" maxlength="80" autocomplete="off"></label>
+          <label>Mot de passe<input id="user-password" type="password" minlength="10" autocomplete="new-password"><small>Laisser vide pour conserver le mot de passe actuel.</small></label>
+          <div class="check-row"><label><input id="user-admin" type="checkbox"> Administrateur</label><label><input id="user-active" type="checkbox" checked> Compte actif</label></div>
+          <div class="form-actions"><button id="cancel-user" type="button">Annuler</button><button class="primary" type="submit">Enregistrer</button></div>
+        </form>
+      </section>
+      <section>
+        <span class="eyebrow">SÉCURITÉ</span><h3>Cloudflare Turnstile</h3>
+        <p class="admin-hint">La protection de la connexion reste inactive tant que les deux clés ne sont pas configurées.</p>
+        <form id="turnstile-form" class="admin-form">
+          <label class="check-row"><input id="turnstile-enabled" type="checkbox"> Activer Turnstile sur la connexion</label>
+          <label>Clé du site<input id="turnstile-site-key" autocomplete="off"></label>
+          <label>Clé secrète<input id="turnstile-secret-key" type="password" autocomplete="new-password" placeholder="Laisser vide pour conserver la clé"><small id="turnstile-secret-status"></small></label>
+          <div class="form-actions"><button class="primary" type="submit">Enregistrer les clés</button></div>
+        </form>
+      </section>
+    </div>
+    <p id="admin-error" class="login-error" role="alert" hidden></p>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>

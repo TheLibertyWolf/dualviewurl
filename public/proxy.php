@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 use Duoviewurl\HtmlRewriter;
 use Duoviewurl\HttpProxy;
+use Duoviewurl\Auth;
+use Duoviewurl\AuthException;
 use Duoviewurl\ProxyException;
 use Duoviewurl\RateLimiter;
 use Duoviewurl\RemoteSession;
@@ -19,6 +21,7 @@ header('Access-Control-Expose-Headers: Content-Range, Accept-Ranges, Content-Len
 header("Content-Security-Policy: default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://challenges.cloudflare.com https://www.google.com https://www.gstatic.com https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.gstatic.com https://newassets.hcaptcha.com; img-src 'self' data: blob: https://challenges.cloudflare.com https://www.gstatic.com https://www.google.com https://*.hcaptcha.com; font-src 'self' data: https://www.gstatic.com; media-src 'self' data: blob:; connect-src 'self' https://challenges.cloudflare.com https://www.google.com https://recaptcha.google.com https://*.hcaptcha.com; frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://recaptcha.google.com https://*.hcaptcha.com; frame-ancestors https://dualviewurl.jessysystem.com; object-src 'none'; base-uri 'none'; form-action 'self'");
 
 try {
+    Auth::requireProxy();
     $limit = max(10, (int) (getenv('DUOVIEW_RATE_LIMIT') ?: 1200));
     (new RateLimiter($limit))->consume($_SERVER['REMOTE_ADDR'] ?? 'unknown');
 
@@ -72,6 +75,10 @@ try {
         header('Accept-Ranges: ' . $response['acceptRanges']);
     }
     echo $response['body'];
+} catch (AuthException $exception) {
+    http_response_code($exception->httpStatus);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="color-scheme" content="dark"><title>Session expirée</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080d1c;color:#dbe6ff;font:16px system-ui}.box{max-width:34rem;padding:2rem;border:1px solid #293454;border-radius:16px;background:#10172b}h1{font-size:1.25rem;color:#67e8f9}</style><div class="box"><h1>Session expirée</h1><p>Reconnectez-vous à Duoviewurl.</p></div></html>';
 } catch (ProxyException $exception) {
     http_response_code($exception->httpStatus);
     header('Content-Type: text/html; charset=utf-8');

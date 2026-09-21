@@ -15,9 +15,14 @@ git clone git@github-dualviewurl:TheLibertyWolf/dualviewurl.git
 cd dualviewurl
 docker compose up -d --build
 docker compose ps
+docker exec -u www-data -it dualviewurl-app php /var/www/html/bin/create-user.php admin 'un-mot-de-passe-long' admin
 ```
 
 Le projet Compose porte explicitement le nom `dualurlview`. Le service interne est joignable par Nginx Proxy Manager à l’adresse `http://dualviewurl-app:80`.
+
+SQLite fonctionne dans le processus PHP : il n’apparaît pas comme un conteneur séparé dans Portainer. La base se trouve dans le volume nommé `dualurlview_data`, visible dans **Volumes**. Ce volume conserve les comptes, les historiques, les sessions persistantes et les réglages Turnstile lors d’une recréation du conteneur.
+
+La commande `create-user.php` crée le premier administrateur. Les comptes suivants et les clés Turnstile se gèrent ensuite avec le bouton **Admin**. Turnstile reste désactivé tant que sa clé de site et sa clé secrète ne sont pas toutes les deux enregistrées.
 
 ## Nginx Proxy Manager
 
@@ -39,3 +44,5 @@ Le premier domaine sert l’interface. Le second est une origine isolée réserv
 git pull --ff-only
 docker compose up -d --build
 ```
+
+Ne lancez pas `docker compose down -v` lors d’une mise à jour : l’option `-v` supprimerait le volume SQLite et donc les données applicatives.
