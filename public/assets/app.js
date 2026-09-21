@@ -111,6 +111,15 @@
     const box = workspace.getBoundingClientRect();
     setSplit(((event.clientX - box.left) / box.width) * 100);
   }
+  function stopDragging(event) {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('is-resizing');
+    divider.classList.remove('dragging');
+    if (event?.pointerId !== undefined && divider.hasPointerCapture(event.pointerId)) {
+      divider.releasePointerCapture(event.pointerId);
+    }
+  }
   function updateDimensions() {
     panels.forEach(panel => {
       const wrap = $('.viewport-wrap', panel);
@@ -135,9 +144,21 @@
     data.device.addEventListener('change', () => { applyDevice(panel); if (currentUrl) loadPanel(panel, currentUrl); savePreferences(); });
     data.theme.addEventListener('change', () => { if (currentUrl) loadPanel(panel, currentUrl); savePreferences(); });
   });
-  divider.addEventListener('pointerdown', event => { dragging = true; divider.classList.add('dragging'); divider.setPointerCapture(event.pointerId); splitFromPointer(event); });
+  divider.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    event.preventDefault();
+    dragging = true;
+    document.body.classList.add('is-resizing');
+    divider.classList.add('dragging');
+    divider.setPointerCapture(event.pointerId);
+    splitFromPointer(event);
+  });
   divider.addEventListener('pointermove', event => { if (dragging) splitFromPointer(event); });
-  divider.addEventListener('pointerup', event => { dragging = false; divider.classList.remove('dragging'); divider.releasePointerCapture(event.pointerId); });
+  divider.addEventListener('pointerup', stopDragging);
+  divider.addEventListener('pointercancel', stopDragging);
+  divider.addEventListener('lostpointercapture', stopDragging);
+  document.addEventListener('pointerup', stopDragging, true);
+  window.addEventListener('blur', stopDragging);
   divider.addEventListener('keydown', event => {
     const step = event.shiftKey ? 5 : 1;
     if (event.key === 'ArrowLeft') { event.preventDefault(); setSplit(getSplit() - step); }
