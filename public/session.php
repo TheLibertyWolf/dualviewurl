@@ -9,6 +9,20 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
 
+$origin = (string) ($_SERVER['HTTP_ORIGIN'] ?? '');
+if ($origin === 'https://dualviewurl.jessysystem.com') {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Headers: X-Duoviewurl-Action');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Vary: Origin');
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+    http_response_code($origin === 'https://dualviewurl.jessysystem.com' ? 204 : 403);
+    exit;
+}
+
 if (
     ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST'
     || ($_SERVER['HTTP_X_DUOVIEWURL_ACTION'] ?? '') !== 'clear-session'

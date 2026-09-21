@@ -1,6 +1,6 @@
 # Duoviewurl
 
-[![Version](https://img.shields.io/badge/version-1.2.1-2271b1)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.2-2271b1)](CHANGELOG.md)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D%208.2-777bb4)](https://www.php.net/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e)](https://developer.mozilla.org/fr/docs/Web/JavaScript)
 [![Licence](https://img.shields.io/badge/licence-MIT-46b450)](LICENSE)
@@ -95,7 +95,7 @@ Consultez [SECURITY.md](SECURITY.md) avant de signaler une vulnérabilité.
 
 ## Limites connues
 
-Un proxy HTML ne peut pas reproduire parfaitement tous les sites. Les formulaires de connexion HTML classiques sont pris en charge. Turnstile, reCAPTCHA et hCaptcha peuvent s’afficher, mais le propriétaire du widget doit autoriser `dualviewurl.jessysystem.com` et son serveur doit accepter ce hostname lors de la validation. Les applications fortement dépendantes de JavaScript, service workers, WebSockets, OAuth externe, MFA, protections anti-bot, téléchargements, formulaires multipart complexes et vérifications strictes de l’origine peuvent rester incompatibles. Les requêtes dynamiques générées dans du JavaScript distant ne sont pas réécrites automatiquement.
+Un proxy HTML ne peut pas reproduire parfaitement tous les sites. Les formulaires de connexion HTML classiques sont pris en charge. Les vues sont servies depuis l’origine isolée `dualviewurl-view.jessysystem.com` afin que Turnstile, reCAPTCHA et hCaptcha disposent d’une origine valide sans pouvoir accéder à l’interface principale. Le propriétaire du widget doit autoriser ce hostname et son serveur doit l’accepter lors de la validation. Les applications fortement dépendantes de JavaScript, service workers, WebSockets, OAuth externe, MFA, protections anti-bot, téléchargements, formulaires multipart complexes et vérifications strictes de l’origine peuvent rester incompatibles. Les requêtes dynamiques générées dans du JavaScript distant ne sont pas réécrites automatiquement.
 
 La largeur d’un panneau reproduit un viewport, mais pas toutes les caractéristiques matérielles d’un appareil réel. Les outils de développement du navigateur restent la référence pour une émulation complète.
 

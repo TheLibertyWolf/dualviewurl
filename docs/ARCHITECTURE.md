@@ -1,10 +1,10 @@
 # Architecture
 
-Le navigateur charge l’interface statique puis deux `iframe` isolées par l’attribut `sandbox`. Chaque document et chaque ressource passe par `proxy.php`. Le proxy valide la destination, résout le DNS, refuse toute adresse non publique, épingle l’adresse retenue avec `CURLOPT_RESOLVE`, télécharge avec des limites strictes, puis réécrit les URL HTML ou CSS.
+Le navigateur charge l’interface statique depuis le domaine principal puis deux `iframe` sandboxées depuis une origine HTTPS distincte. Chaque document et chaque ressource passe par `proxy.php`. Le proxy valide la destination, résout le DNS, refuse toute adresse non publique, épingle l’adresse retenue avec `CURLOPT_RESOLVE`, télécharge avec des limites strictes, puis réécrit les URL HTML ou CSS.
 
 ```mermaid
 flowchart LR
-    B[Navigateur] --> N[Nginx Proxy Manager · TLS]
+    B[Navigateur] --> N[Nginx Proxy Manager · 2 origines TLS]
     N --> A[Conteneur dualurlview · Apache/PHP]
     A --> G[Validation SSRF + DNS]
     G --> W[Site public distant]
@@ -18,7 +18,8 @@ flowchart LR
 - seul le réseau externe `npm_default` relie Nginx Proxy Manager à l’application ;
 - le système de fichiers du conteneur est en lecture seule et `/tmp` est un `tmpfs` limité ;
 - les capacités Linux sont supprimées et `no-new-privileges` est activé ;
-- les documents distants restent dans des cadres sandboxés sans `allow-same-origin` ;
+- les documents distants restent dans des cadres sandboxés sur `dualviewurl-view.jessysystem.com`, une origine différente de l’interface ;
+- l’origine d’aperçu ne sert pas l’interface et sa CSP n’autorise que le domaine principal comme parent ;
 - aucun cookie utilisateur, en-tête d’autorisation ou en-tête entrant sensible n’est relayé ;
 - les réponses ne sont pas mises en cache.
 

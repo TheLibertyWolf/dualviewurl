@@ -9,6 +9,7 @@
   const sync = $('#sync');
   const remember = $('#remember');
   const status = $('#status');
+  const proxyOrigin = new URL(document.documentElement.dataset.proxyOrigin || location.origin, location.href).origin;
   let currentUrl = '';
   let dragging = false;
   let suppressSync = false;
@@ -45,7 +46,7 @@
 
   function proxyUrl(url, panel) {
     const data = panelData(panel);
-    return `/proxy.php?${new URLSearchParams({ url, ua: selectedDevice(panel).ua, theme: data.theme.value })}`;
+    return `${proxyOrigin}/proxy.php?${new URLSearchParams({ url, ua: selectedDevice(panel).ua, theme: data.theme.value })}`;
   }
 
   function loadPanel(panel, url) {
@@ -183,9 +184,9 @@
   });
   $('#clear-session').addEventListener('click', async () => {
     try {
-      const response = await fetch('/session.php', {
+      const response = await fetch(`${proxyOrigin}/session.php`, {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
         headers: { 'X-Duoviewurl-Action': 'clear-session' },
       });
       if (!response.ok) throw new Error('session');
@@ -198,7 +199,7 @@
     if (remember.checked) savePreferences(); else localStorage.removeItem('duoviewurl.preferences');
   });
   window.addEventListener('message', event => {
-    if (event.origin !== 'null' || event.data?.source !== 'duoviewurl') return;
+    if (event.origin !== proxyOrigin || event.data?.source !== 'duoviewurl') return;
     const sourcePanel = panels.find(panel => panelData(panel).frame.contentWindow === event.source);
     if (!sourcePanel) return;
     if (event.data.type === 'session-submit') {
