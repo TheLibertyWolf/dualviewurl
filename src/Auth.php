@@ -181,17 +181,11 @@ final class Auth
         if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
             return false;
         }
-        $hash = hash('sha256', $token);
         $statement = Database::connection()->prepare(
             'SELECT p.user_id FROM proxy_tokens p JOIN users u ON u.id = p.user_id WHERE p.token_hash = ? AND p.expires_at > ? AND u.is_active = 1'
         );
-        $statement->execute([$hash, time()]);
-        if (!$statement->fetchColumn()) {
-            return false;
-        }
-        Database::connection()->prepare('UPDATE proxy_tokens SET last_used_at = ?, expires_at = ? WHERE token_hash = ?')
-            ->execute([time(), time() + self::PROXY_SECONDS, $hash]);
-        return true;
+        $statement->execute([hash('sha256', $token), time()]);
+        return $statement->fetchColumn() !== false;
     }
 
     /** @return array{id:int,username:string,is_admin:int,is_active:int}|null */

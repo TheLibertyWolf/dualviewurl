@@ -25,10 +25,16 @@ final class Database
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
         @chmod($path, 0600);
-        $pdo->exec('PRAGMA foreign_keys = ON');
-        $pdo->exec('PRAGMA journal_mode = WAL');
         $pdo->exec('PRAGMA busy_timeout = 5000');
-        self::migrate($pdo);
+        $pdo->exec('PRAGMA foreign_keys = ON');
+        $journalMode = strtolower((string) $pdo->query('PRAGMA journal_mode')->fetchColumn());
+        if ($journalMode !== 'wal') {
+            $pdo->exec('PRAGMA journal_mode = WAL');
+        }
+        if ((int) $pdo->query('PRAGMA user_version')->fetchColumn() < 1) {
+            self::migrate($pdo);
+            $pdo->exec('PRAGMA user_version = 1');
+        }
         self::$connection = $pdo;
         return $pdo;
     }

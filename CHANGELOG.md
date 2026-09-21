@@ -12,10 +12,16 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - historique SQLite isolé par utilisateur, autocomplétion et suppression intégrale ;
 - PWA installable avec manifeste, service worker et page hors ligne ;
 - volume Docker persistant `dualurlview_data` pour la base SQLite.
+- suggestions d’historique façon navigateur, avec favicon, domaine et URL complète.
 
 ### Sécurité
 
 - protection CSRF des mutations, cookies sécurisés et tickets temporaires entre l’interface et l’origine d’aperçu.
+
+### Corrigé
+
+- suppression des écritures SQLite effectuées pour chaque ressource proxifiée, qui provoquaient des verrouillages et le chargement incomplet des feuilles de style ;
+- masquage des détails techniques lors d’une erreur serveur inattendue.
 
 ## [1.2.3] - 2026-09-21
 

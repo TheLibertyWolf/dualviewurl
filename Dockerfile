@@ -11,6 +11,9 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+RUN printf 'display_errors=Off\ndisplay_startup_errors=Off\nlog_errors=On\nexpose_php=Off\n' \
+    > /usr/local/etc/php/conf.d/zz-duoviewurl-production.ini
+
 COPY --chown=www-data:www-data . /var/www/html
 
 RUN mkdir -p /var/lib/dualviewurl \

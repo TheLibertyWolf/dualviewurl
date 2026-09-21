@@ -158,20 +158,74 @@
 
   form.addEventListener('submit', event => {
     event.preventDefault();
+    closeSuggestions();
     try { load(normalizeUrl(input.value)); } catch (error) { $('#url-error').textContent = error.message; input.focus(); }
   });
   let suggestionTimer;
+  let suggestionItems = [];
+  let activeSuggestion = -1;
+  const suggestions = $('#history-suggestions');
+  function closeSuggestions() {
+    suggestions.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    activeSuggestion = -1;
+  }
+  function setActiveSuggestion(index) {
+    const options = [...suggestions.querySelectorAll('.url-suggestion')];
+    if (!options.length) return;
+    activeSuggestion = (index + options.length) % options.length;
+    options.forEach((option, position) => option.classList.toggle('active', position === activeSuggestion));
+    const active = options[activeSuggestion];
+    input.setAttribute('aria-activedescendant', active.id);
+    active.scrollIntoView({ block: 'nearest' });
+  }
+  function chooseSuggestion(url) {
+    input.value = url;
+    closeSuggestions();
+    try { load(normalizeUrl(url)); } catch (error) { $('#url-error').textContent = error.message; }
+  }
+  function renderSuggestions(items) {
+    suggestionItems = items;
+    activeSuggestion = -1;
+    suggestions.replaceChildren(...items.map((item, index) => {
+      const option = document.createElement('button');
+      option.type = 'button'; option.className = 'url-suggestion'; option.id = `history-option-${index}`; option.setAttribute('role', 'option');
+      const icon = document.createElement('img');
+      icon.src = `/favicon.php?url=${encodeURIComponent(item.url)}`; icon.alt = ''; icon.width = 20; icon.height = 20;
+      const copy = document.createElement('span'); copy.className = 'url-suggestion-copy';
+      const host = document.createElement('span'); host.className = 'url-suggestion-host';
+      try { host.textContent = new URL(item.url).hostname; } catch { host.textContent = item.url; }
+      const address = document.createElement('span'); address.className = 'url-suggestion-address'; address.textContent = item.url;
+      copy.append(host, address); option.append(icon, copy);
+      option.addEventListener('pointerdown', event => event.preventDefault());
+      option.addEventListener('click', () => chooseSuggestion(item.url));
+      return option;
+    }));
+    suggestions.hidden = items.length === 0;
+    input.setAttribute('aria-expanded', items.length ? 'true' : 'false');
+  }
+  async function refreshSuggestions() {
+    try {
+      const payload = await api(`history?q=${encodeURIComponent(input.value.trim())}`);
+      renderSuggestions(payload.history);
+    } catch { closeSuggestions(); }
+  }
   input.addEventListener('input', () => {
     clearTimeout(suggestionTimer);
-    suggestionTimer = setTimeout(async () => {
-      try {
-        const payload = await api(`history?q=${encodeURIComponent(input.value.trim())}`);
-        const datalist = $('#history-suggestions');
-        datalist.replaceChildren(...payload.history.map(item => {
-          const option = document.createElement('option'); option.value = item.url; return option;
-        }));
-      } catch { /* Les suggestions ne doivent jamais bloquer la saisie. */ }
-    }, 140);
+    suggestionTimer = setTimeout(refreshSuggestions, 140);
+  });
+  input.addEventListener('focus', refreshSuggestions);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { closeSuggestions(); return; }
+    if (event.key === 'ArrowDown' && suggestionItems.length) { event.preventDefault(); setActiveSuggestion(activeSuggestion + 1); }
+    if (event.key === 'ArrowUp' && suggestionItems.length) { event.preventDefault(); setActiveSuggestion(activeSuggestion - 1); }
+    if (event.key === 'Enter' && activeSuggestion >= 0) {
+      event.preventDefault(); chooseSuggestion(suggestionItems[activeSuggestion].url);
+    }
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!event.target.closest('.url-entry')) closeSuggestions();
   });
   panels.forEach(panel => {
     const data = panelData(panel);
@@ -232,7 +286,7 @@
     if (!confirm('Supprimer tout votre historique Duoviewurl ?')) return;
     try {
       await api('history_clear', { method: 'POST', body: {} });
-      $('#history-suggestions').replaceChildren();
+      suggestions.replaceChildren(); suggestionItems = []; closeSuggestions();
       toast('Historique supprimé');
     } catch (error) { toast(error.message); }
   });

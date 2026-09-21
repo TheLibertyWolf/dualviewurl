@@ -60,7 +60,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' https://c
   <title>Connexion — Duoviewurl</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/app.css?v=2.0.0">
+  <link rel="stylesheet" href="/assets/app.css?v=2.0.1">
   <?php if ($turnstile['enabled']): ?><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><?php endif; ?>
 </head>
 <body class="auth-shell">

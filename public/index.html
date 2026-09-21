@@ -12,8 +12,8 @@
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/assets/app-icon.svg">
-  <link rel="stylesheet" href="/assets/app.css?v=2.0.0">
-  <script src="/assets/app.js?v=2.0.0" defer></script>
+  <link rel="stylesheet" href="/assets/app.css?v=2.0.1">
+  <script src="/assets/app.js?v=2.0.1" defer></script>
   <script src="/register-sw.js?v=2.0.0" defer></script>
 </head>
 <body>
@@ -25,9 +25,11 @@
     </a>
     <form id="url-form" class="url-form" novalidate>
       <label class="sr-only" for="url-input">URL à afficher</label>
-      <span class="protocol" aria-hidden="true">↗</span>
-      <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" list="history-suggestions" spellcheck="false" placeholder="example.com" aria-describedby="url-error">
-      <datalist id="history-suggestions"></datalist>
+      <div class="url-entry">
+        <span class="protocol" aria-hidden="true">↗</span>
+        <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" aria-describedby="url-error" aria-autocomplete="list" aria-controls="history-suggestions" aria-expanded="false">
+        <div id="history-suggestions" class="url-suggestions" role="listbox" hidden></div>
+      </div>
       <button class="primary" type="submit">Afficher</button>
       <span id="url-error" class="field-error" role="alert"></span>
     </form>

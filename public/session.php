@@ -27,9 +27,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 
 try {
     Auth::requireProxy();
-} catch (AuthException $error) {
-    http_response_code($error->httpStatus);
-    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
+} catch (Throwable $error) {
+    $status = $error instanceof AuthException ? $error->httpStatus : 503;
+    $message = $error instanceof AuthException ? $error->getMessage() : 'Service temporairement indisponible.';
+    http_response_code($status);
+    echo json_encode(['error' => $message], JSON_THROW_ON_ERROR);
     exit;
 }
 

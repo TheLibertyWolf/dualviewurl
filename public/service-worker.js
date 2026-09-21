@@ -1,7 +1,7 @@
-const CACHE = 'duoviewurl-v2';
+const CACHE = 'duoviewurl-v2.0.1';
 const ASSETS = [
-  '/assets/app.css?v=2.0.0',
-  '/assets/app.js?v=2.0.0',
+  '/assets/app.css?v=2.0.1',
+  '/assets/app.js?v=2.0.1',
   '/assets/favicon.svg',
   '/assets/app-icon.svg',
   '/manifest.webmanifest',
