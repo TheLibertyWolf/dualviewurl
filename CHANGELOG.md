@@ -2,6 +2,13 @@
 
 Les changements notables de Duoviewurl sont documentés ici selon [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [1.2.1] - 2026-09-21
+
+### Ajouté
+
+- exécution directe des scripts officiels Turnstile, reCAPTCHA et hCaptcha avec CSP restreinte à leurs domaines ;
+- conservation des widgets CAPTCHA dans les pages proxifiées lorsque le hostname Duoviewurl est autorisé par leur propriétaire.
+
 ## [1.2.0] - 2026-09-21
 
 ### Ajouté
@@ -59,6 +66,7 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - déploiement Docker isolé derrière Nginx Proxy Manager ;
 - tests automatisés et workflow CI.
 
+[1.2.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.1
 [1.2.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.2.0
 [1.1.2]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.1.2
 [1.1.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.1.1

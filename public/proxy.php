@@ -16,7 +16,7 @@ header('Referrer-Policy: no-referrer');
 header('Access-Control-Allow-Origin: *');
 header('Cross-Origin-Resource-Policy: cross-origin');
 header('Access-Control-Expose-Headers: Content-Range, Accept-Ranges, Content-Length');
-header("Content-Security-Policy: default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'");
+header("Content-Security-Policy: default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://challenges.cloudflare.com https://www.google.com https://www.gstatic.com https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.gstatic.com https://newassets.hcaptcha.com; img-src 'self' data: blob: https://challenges.cloudflare.com https://www.gstatic.com https://www.google.com https://*.hcaptcha.com; font-src 'self' data: https://www.gstatic.com; media-src 'self' data: blob:; connect-src 'self' https://challenges.cloudflare.com https://www.google.com https://recaptcha.google.com https://*.hcaptcha.com; frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://recaptcha.google.com https://*.hcaptcha.com; object-src 'none'; base-uri 'none'; form-action 'self'");
 
 try {
     $limit = max(10, (int) (getenv('DUOVIEW_RATE_LIMIT') ?: 1200));
