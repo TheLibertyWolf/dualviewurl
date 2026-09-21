@@ -12,14 +12,16 @@ require_once dirname(__DIR__) . '/src/bootstrap.php';
 header('Cache-Control: no-store, private');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
+header('Access-Control-Allow-Origin: *');
+header('Cross-Origin-Resource-Policy: cross-origin');
 header("Content-Security-Policy: default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'");
 
 try {
-    $limit = max(10, (int) (getenv('DUOVIEW_RATE_LIMIT') ?: 90));
+    $limit = max(10, (int) (getenv('DUOVIEW_RATE_LIMIT') ?: 1200));
     (new RateLimiter($limit))->consume($_SERVER['REMOTE_ADDR'] ?? 'unknown');
 
     $url = (string) ($_GET['url'] ?? '');
-    $ua = in_array($_GET['ua'] ?? '', ['desktop', 'iphone', 'native'], true) ? (string) $_GET['ua'] : 'desktop';
+    $ua = in_array($_GET['ua'] ?? '', ['desktop', 'iphone', 'ipad', 'android', 'native'], true) ? (string) $_GET['ua'] : 'desktop';
     $theme = in_array($_GET['theme'] ?? '', ['system', 'light', 'dark'], true) ? (string) $_GET['theme'] : 'system';
     $proxy = new HttpProxy(
         new SsrfGuard(),

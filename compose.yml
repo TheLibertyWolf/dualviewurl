@@ -7,7 +7,7 @@ services:
     container_name: dualviewurl-app
     restart: unless-stopped
     environment:
-      DUOVIEW_RATE_LIMIT: "90"
+      DUOVIEW_RATE_LIMIT: "1200"
       DUOVIEW_MAX_BYTES: "10485760"
       DUOVIEW_CONNECT_TIMEOUT: "5"
       DUOVIEW_TOTAL_TIMEOUT: "15"

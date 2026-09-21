@@ -2,6 +2,20 @@
 
 Les changements notables de Duoviewurl sont documentés ici selon [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [1.1.0] - 2026-09-21
+
+### Ajouté
+
+- sélecteur d’appareil indépendant dans chaque vue avec presets desktop, laptop, iPad, iPhone, Pixel et Galaxy ;
+- largeur réelle de viewport et User-Agent associés à chaque preset ;
+- comparaisons libres desktop/mobile, mobile/mobile ou desktop/desktop avec thèmes distincts.
+
+### Corrigé
+
+- limite par IP portée à 1 200 requêtes proxifiées par minute pour tenir compte des ressources chargées par les deux vues.
+- chargement des CSS et polices dans les iframes sandboxées grâce aux en-têtes CORS du proxy ;
+- suppression des attributs SRI devenus invalides après réécriture des ressources.
+
 ## [1.0.1] - 2026-09-21
 
 ### Corrigé
@@ -22,5 +36,6 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 - déploiement Docker isolé derrière Nginx Proxy Manager ;
 - tests automatisés et workflow CI.
 
+[1.1.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.1.0
 [1.0.1]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.0.1
 [1.0.0]: https://github.com/TheLibertyWolf/dualviewurl/releases/tag/v1.0.0

@@ -15,8 +15,22 @@
 
   const panelData = panel => ({
     frame: $('iframe', panel), loading: $('.loading-state', panel), empty: $('.empty-state', panel),
-    ua: $('.ua-select', panel), theme: $('.theme-select', panel), dimensions: $('.dimensions', panel),
+    device: $('.device-select', panel), theme: $('.theme-select', panel), dimensions: $('.dimensions', panel),
   });
+
+  function selectedDevice(panel) {
+    const select = panelData(panel).device;
+    const option = select.selectedOptions[0];
+    return { value: select.value, width: Number(option?.dataset.width || 0), ua: option?.dataset.ua || 'desktop' };
+  }
+
+  function applyDevice(panel) {
+    const data = panelData(panel);
+    const device = selectedDevice(panel);
+    data.frame.style.width = device.width ? `${device.width}px` : '100%';
+    data.frame.style.minWidth = device.width ? `${device.width}px` : '0';
+    updateDimensions();
+  }
 
   function normalizeUrl(value) {
     let candidate = value.trim();
@@ -30,7 +44,7 @@
 
   function proxyUrl(url, panel) {
     const data = panelData(panel);
-    return `/proxy.php?${new URLSearchParams({ url, ua: data.ua.value, theme: data.theme.value })}`;
+    return `/proxy.php?${new URLSearchParams({ url, ua: selectedDevice(panel).ua, theme: data.theme.value })}`;
   }
 
   function loadPanel(panel, url) {
@@ -63,7 +77,7 @@
     if (!remember.checked) return;
     const preferences = {
       url: currentUrl, split: getSplit(), sync: sync.checked, remember: true,
-      panels: panels.map(panel => ({ ua: panelData(panel).ua.value, theme: panelData(panel).theme.value })),
+      panels: panels.map(panel => ({ device: panelData(panel).device.value, theme: panelData(panel).theme.value })),
     };
     localStorage.setItem('duoviewurl.preferences', JSON.stringify(preferences));
   }
@@ -77,8 +91,9 @@
       setSplit(Number(saved.split) || 62);
       saved.panels?.forEach((settings, index) => {
         const data = panels[index] && panelData(panels[index]);
-        if (data && ['desktop', 'iphone', 'native'].includes(settings.ua)) data.ua.value = settings.ua;
+        if (data && [...data.device.options].some(option => option.value === settings.device)) data.device.value = settings.device;
         if (data && ['system', 'light', 'dark'].includes(settings.theme)) data.theme.value = settings.theme;
+        if (data) applyDevice(panels[index]);
       });
       if (!new URLSearchParams(location.search).has('url') && saved.url) input.value = saved.url;
     } catch { localStorage.removeItem('duoviewurl.preferences'); }
@@ -99,7 +114,9 @@
   function updateDimensions() {
     panels.forEach(panel => {
       const wrap = $('.viewport-wrap', panel);
-      panelData(panel).dimensions.value = `${Math.round(wrap.clientWidth)} × ${Math.round(wrap.clientHeight)} px`;
+      const device = selectedDevice(panel);
+      const width = device.width || wrap.clientWidth;
+      panelData(panel).dimensions.value = `${Math.round(width)} × ${Math.round(wrap.clientHeight)} px`;
     });
   }
   function toast(message) {
@@ -115,7 +132,7 @@
     const data = panelData(panel);
     data.frame.addEventListener('load', () => { data.loading.hidden = true; status.textContent = `Affiché · ${new URL(currentUrl).hostname}`; });
     $('.reload', panel).addEventListener('click', () => currentUrl && loadPanel(panel, currentUrl));
-    data.ua.addEventListener('change', () => { if (currentUrl) loadPanel(panel, currentUrl); savePreferences(); });
+    data.device.addEventListener('change', () => { applyDevice(panel); if (currentUrl) loadPanel(panel, currentUrl); savePreferences(); });
     data.theme.addEventListener('change', () => { if (currentUrl) loadPanel(panel, currentUrl); savePreferences(); });
   });
   divider.addEventListener('pointerdown', event => { dragging = true; divider.classList.add('dragging'); divider.setPointerCapture(event.pointerId); splitFromPointer(event); });
@@ -130,9 +147,10 @@
   });
   $('#swap').addEventListener('click', () => {
     const first = panels[0], second = panels[1];
-    const a = { ua: panelData(first).ua.value, theme: panelData(first).theme.value };
-    panelData(first).ua.value = panelData(second).ua.value; panelData(first).theme.value = panelData(second).theme.value;
-    panelData(second).ua.value = a.ua; panelData(second).theme.value = a.theme;
+    const a = { device: panelData(first).device.value, theme: panelData(first).theme.value };
+    panelData(first).device.value = panelData(second).device.value; panelData(first).theme.value = panelData(second).theme.value;
+    panelData(second).device.value = a.device; panelData(second).theme.value = a.theme;
+    panels.forEach(applyDevice);
     if (currentUrl) panels.forEach(panel => loadPanel(panel, currentUrl));
     toast('Configurations inversées'); savePreferences();
   });
@@ -164,7 +182,7 @@
   new ResizeObserver(updateDimensions).observe(workspace);
   window.addEventListener('resize', updateDimensions);
 
-  restorePreferences(); updateDimensions();
+  panels.forEach(applyDevice); restorePreferences(); updateDimensions();
   const sharedUrl = new URLSearchParams(location.search).get('url');
   const initial = sharedUrl || (remember.checked ? input.value : '');
   if (initial) { try { load(normalizeUrl(initial)); } catch { $('#url-error').textContent = 'L’URL partagée est invalide.'; } }

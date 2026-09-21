@@ -49,6 +49,12 @@ final class HtmlRewriter
                         $node->setAttribute('data-duoviewurl-action', $absolute);
                     }
                     $node->setAttribute($attribute, $this->proxyUrl($absolute, $ua, $theme));
+                    if ($node->hasAttribute('integrity')) {
+                        $node->removeAttribute('integrity');
+                    }
+                    if ($node->hasAttribute('crossorigin')) {
+                        $node->removeAttribute('crossorigin');
+                    }
                 }
             }
         }

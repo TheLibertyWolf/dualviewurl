@@ -69,10 +69,12 @@ test('résout les URL relatives', function (): void {
     assertTrue(Url::resolve('https://example.com/a/page.html', '/style.css') === 'https://example.com/style.css');
 });
 test('réécrit HTML et conserve la destination des liens', function (): void {
-    $html = (new HtmlRewriter())->rewrite('<html><head></head><body><a href="/suite">Suite</a><img src="img/a.png"></body></html>', 'https://example.com/path/', 'desktop', 'dark');
+    $html = (new HtmlRewriter())->rewrite('<html><head><link rel="stylesheet" href="/app.css" integrity="sha384-test" crossorigin="anonymous"></head><body><a href="/suite">Suite</a><img src="img/a.png"></body></html>', 'https://example.com/path/', 'desktop', 'dark');
     assertTrue(str_contains($html, 'data-duoviewurl-target="https://example.com/suite"'));
     assertTrue(str_contains($html, 'url=https%3A%2F%2Fexample.com%2Fpath%2Fimg%2Fa.png'));
     assertTrue(str_contains($html, "color-scheme:dark"));
+    assertTrue(!str_contains($html, 'integrity='), 'Le hash SRI doit être retiré après réécriture.');
+    assertTrue(!str_contains($html, 'crossorigin='), 'Le mode crossorigin distant doit être retiré.');
 });
 test('réécrit les url CSS', function (): void {
     $css = (new HtmlRewriter())->rewriteCss('@import "theme.css";body{background:url(../bg.png)}', 'https://example.com/css/main.css', 'iphone', 'light');

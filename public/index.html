@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#080d1c">
   <meta name="description" content="Affichez une URL simultanément dans une vue ordinateur et une vue mobile.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Duoviewurl — Deux viewports, une URL</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/app.css?v=1.0.1">
-  <script src="/assets/app.js?v=1.0.1" defer></script>
+  <link rel="stylesheet" href="/assets/app.css?v=1.1.0">
+  <script src="/assets/app.js?v=1.1.0" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">Aller aux aperçus</a>
@@ -46,14 +46,20 @@
       <div class="panel-toolbar">
         <div class="panel-identity">
           <span class="panel-dot" aria-hidden="true"></span>
-          <div><h1 id="desktop-title">Ordinateur</h1><output class="dimensions" aria-live="polite">— × —</output></div>
+          <div><h1 id="desktop-title">Vue A</h1><output class="dimensions" aria-live="polite">— × —</output></div>
         </div>
         <div class="panel-controls">
-          <label>User-Agent
-            <select class="ua-select" aria-label="User-Agent de la vue ordinateur">
-              <option value="desktop">Chrome desktop</option>
-              <option value="iphone">Safari iPhone</option>
-              <option value="native">Navigateur natif</option>
+          <label>Appareil
+            <select class="device-select" aria-label="Appareil de la vue A">
+              <option value="responsive" data-width="0" data-ua="desktop">Desktop · adaptable</option>
+              <option value="desktop-1920" data-width="1920" data-ua="desktop">Desktop · 1920 px</option>
+              <option value="laptop-1440" data-width="1440" data-ua="desktop">Laptop · 1440 px</option>
+              <option value="ipad-pro" data-width="1024" data-ua="ipad">iPad Pro · 1024 px</option>
+              <option value="ipad-mini" data-width="768" data-ua="ipad">iPad Mini · 768 px</option>
+              <option value="iphone-pro-max" data-width="430" data-ua="iphone">iPhone Pro Max · 430 px</option>
+              <option value="iphone" data-width="393" data-ua="iphone">iPhone 15/16 · 393 px</option>
+              <option value="pixel" data-width="412" data-ua="android">Google Pixel · 412 px</option>
+              <option value="galaxy" data-width="360" data-ua="android">Galaxy S24 · 360 px</option>
             </select>
           </label>
           <label>Thème
@@ -69,8 +75,8 @@
       <div class="viewport-wrap">
         <div class="empty-state">
           <div class="empty-icon desktop-icon" aria-hidden="true">▱</div>
-          <h2>Vue ordinateur</h2>
-          <p>Saisissez une adresse pour inspecter le rendu large du site.</p>
+          <h2>Vue A</h2>
+          <p>Choisissez un appareil et saisissez une adresse à comparer.</p>
         </div>
         <div class="loading-state" hidden><span class="spinner"></span><span>Chargement de la vue…</span></div>
         <iframe title="Aperçu ordinateur" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" referrerpolicy="no-referrer" hidden></iframe>
@@ -83,14 +89,20 @@
       <div class="panel-toolbar">
         <div class="panel-identity">
           <span class="panel-dot" aria-hidden="true"></span>
-          <div><h1 id="mobile-title">Mobile</h1><output class="dimensions" aria-live="polite">— × —</output></div>
+          <div><h1 id="mobile-title">Vue B</h1><output class="dimensions" aria-live="polite">— × —</output></div>
         </div>
         <div class="panel-controls">
-          <label>User-Agent
-            <select class="ua-select" aria-label="User-Agent de la vue mobile">
-              <option value="iphone">Safari iPhone</option>
-              <option value="desktop">Chrome desktop</option>
-              <option value="native">Navigateur natif</option>
+          <label>Appareil
+            <select class="device-select" aria-label="Appareil de la vue B">
+              <option value="responsive" data-width="0" data-ua="desktop">Desktop · adaptable</option>
+              <option value="desktop-1920" data-width="1920" data-ua="desktop">Desktop · 1920 px</option>
+              <option value="laptop-1440" data-width="1440" data-ua="desktop">Laptop · 1440 px</option>
+              <option value="ipad-pro" data-width="1024" data-ua="ipad">iPad Pro · 1024 px</option>
+              <option value="ipad-mini" data-width="768" data-ua="ipad">iPad Mini · 768 px</option>
+              <option value="iphone-pro-max" data-width="430" data-ua="iphone">iPhone Pro Max · 430 px</option>
+              <option value="iphone" data-width="393" data-ua="iphone" selected>iPhone 15/16 · 393 px</option>
+              <option value="pixel" data-width="412" data-ua="android">Google Pixel · 412 px</option>
+              <option value="galaxy" data-width="360" data-ua="android">Galaxy S24 · 360 px</option>
             </select>
           </label>
           <label>Thème
@@ -106,8 +118,8 @@
       <div class="viewport-wrap">
         <div class="empty-state">
           <div class="empty-icon mobile-icon" aria-hidden="true">▯</div>
-          <h2>Vue mobile</h2>
-          <p>La même page apparaîtra ici avec un navigateur iPhone.</p>
+          <h2>Vue B</h2>
+          <p>Utilisez un autre appareil ou thème pour comparer le même site.</p>
         </div>
         <div class="loading-state" hidden><span class="spinner"></span><span>Chargement de la vue…</span></div>
         <iframe title="Aperçu mobile" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" referrerpolicy="no-referrer" hidden></iframe>

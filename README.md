@@ -1,6 +1,6 @@
 # Duoviewurl
 
-[![Version](https://img.shields.io/badge/version-1.0.1-2271b1)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-2271b1)](CHANGELOG.md)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D%208.2-777bb4)](https://www.php.net/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e)](https://developer.mozilla.org/fr/docs/Web/JavaScript)
 [![Licence](https://img.shields.io/badge/licence-MIT-46b450)](LICENSE)
@@ -22,7 +22,7 @@ L’écran principal est immédiatement utilisable : une barre d’URL, deux pan
 - séparateur redimensionnable à la souris, au tactile et au clavier ;
 - dimensions réelles actualisées en direct ;
 - rechargement indépendant et inversion des configurations ;
-- User-Agent Chrome desktop, Safari iPhone ou navigateur natif par panneau ;
+- presets indépendants par panneau pour desktop, laptop, iPad, iPhone, Pixel et Galaxy, avec largeur réelle et User-Agent adapté ;
 - thème système, clair ou sombre par panneau ;
 - synchronisation désactivable des liens suivis ;
 - mémorisation locale optionnelle des réglages ;
@@ -68,7 +68,7 @@ La stack s’appelle `dualurlview`. Elle n’expose aucun port hôte ; Nginx Pro
 
 | Variable | Défaut | Rôle |
 | --- | ---: | --- |
-| `DUOVIEW_RATE_LIMIT` | `90` | requêtes maximales par IP et par minute |
+| `DUOVIEW_RATE_LIMIT` | `1200` | requêtes proxifiées maximales par IP et par minute, ressources comprises |
 | `DUOVIEW_MAX_BYTES` | `10485760` | taille maximale d’une réponse distante |
 | `DUOVIEW_CONNECT_TIMEOUT` | `5` | délai de connexion en secondes |
 | `DUOVIEW_TOTAL_TIMEOUT` | `15` | durée totale maximale en secondes |
