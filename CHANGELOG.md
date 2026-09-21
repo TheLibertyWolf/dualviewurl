@@ -21,6 +21,7 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 ### Corrigé
 
 - suppression des écritures SQLite effectuées pour chaque ressource proxifiée, qui provoquaient des verrouillages et le chargement incomplet des feuilles de style ;
+- chargement des images et ressources dont le chemin contient des espaces ou des caractères accentués ;
 - masquage des détails techniques lors d’une erreur serveur inattendue.
 
 ## [1.2.3] - 2026-09-21

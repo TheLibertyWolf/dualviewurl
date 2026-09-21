@@ -5,6 +5,15 @@ namespace Duoviewurl;
 
 final class Url
 {
+    public static function encodeForRequest(string $url): string
+    {
+        return preg_replace_callback(
+            '~[^A-Za-z0-9\-._\~:/?#\[\]@!$&\'()*+,;=%]~u',
+            static fn(array $match): string => rawurlencode($match[0]),
+            $url,
+        ) ?? $url;
+    }
+
     public static function resolve(string $base, string $relative): string
     {
         $relative = trim($relative);

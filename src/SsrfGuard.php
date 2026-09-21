@@ -61,7 +61,7 @@ final class SsrfGuard
             }
         }
 
-        return ['url' => $rawUrl, 'host' => $host, 'port' => $port, 'ip' => $ips[0]];
+        return ['url' => Url::encodeForRequest($rawUrl), 'host' => $host, 'port' => $port, 'ip' => $ips[0]];
     }
 
     public static function isPublicIp(string $ip): bool

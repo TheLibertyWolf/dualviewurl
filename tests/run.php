@@ -79,6 +79,13 @@ test('résout les URL relatives', function (): void {
     assertTrue(Url::resolve('https://example.com/a/b/page.html', '../img/a.png') === 'https://example.com/a/img/a.png');
     assertTrue(Url::resolve('https://example.com/a/page.html', '/style.css') === 'https://example.com/style.css');
 });
+test('encode les espaces et caractères Unicode des ressources distantes', function (): void {
+    assertTrue(
+        Url::encodeForRequest('https://example.com/image modifiée.jpg?format=grand écran')
+        === 'https://example.com/image%20modifi%C3%A9e.jpg?format=grand%20%C3%A9cran'
+    );
+    assertTrue(Url::encodeForRequest('https://example.com/image%20ok.jpg') === 'https://example.com/image%20ok.jpg');
+});
 test('réécrit HTML et conserve la destination des liens', function (): void {
     $html = (new HtmlRewriter())->rewrite('<html><head><link rel="stylesheet" href="/app.css" integrity="sha384-test" crossorigin="anonymous"></head><body><a href="/suite">Suite</a><img src="img/a.png"></body></html>', 'https://example.com/path/', 'desktop', 'dark');
     assertTrue(str_contains($html, 'data-duoviewurl-target="https://example.com/suite"'));
