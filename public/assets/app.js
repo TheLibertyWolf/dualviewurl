@@ -12,6 +12,7 @@
   let currentUrl = '';
   let dragging = false;
   let suppressSync = false;
+  let pendingSessionPanel = null;
 
   const panelData = panel => ({
     frame: $('iframe', panel), loading: $('.loading-state', panel), empty: $('.empty-state', panel),
@@ -199,7 +200,26 @@
   window.addEventListener('message', event => {
     if (event.origin !== 'null' || event.data?.source !== 'duoviewurl') return;
     const sourcePanel = panels.find(panel => panelData(panel).frame.contentWindow === event.source);
-    if (!sourcePanel || event.data.type !== 'navigate' || suppressSync) return;
+    if (!sourcePanel) return;
+    if (event.data.type === 'session-submit') {
+      pendingSessionPanel = sourcePanel;
+      status.textContent = 'Connexion en cours…';
+      return;
+    }
+    if (event.data.type === 'ready' && pendingSessionPanel === sourcePanel) {
+      pendingSessionPanel = null;
+      try {
+        const authenticatedUrl = normalizeUrl(event.data.url);
+        currentUrl = authenticatedUrl;
+        input.value = authenticatedUrl;
+        updateShareUrl();
+        panels.filter(panel => panel !== sourcePanel).forEach(panel => loadPanel(panel, authenticatedUrl));
+        status.textContent = 'Session connectée dans les deux vues';
+        savePreferences();
+      } catch { /* La réponse affichée reste disponible dans la vue source. */ }
+      return;
+    }
+    if (event.data.type !== 'navigate' || suppressSync) return;
     try {
       const target = normalizeUrl(event.data.url);
       currentUrl = target; input.value = target; updateShareUrl();

@@ -8,6 +8,7 @@ Les changements notables de Duoviewurl sont documentés ici selon [Keep a Change
 
 - session distante temporaire et isolée par navigateur, partagée entre les deux vues ;
 - transmission des formulaires POST classiques et suivi des redirections de connexion ;
+- rechargement automatique de l’autre vue après une connexion réussie ;
 - bouton « Effacer la session » supprimant immédiatement les cookies distants ;
 - exclusion des requêtes proxy du journal d’accès Apache.
 

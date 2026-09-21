@@ -124,7 +124,12 @@ final class HtmlRewriter
   },true);
   document.addEventListener('submit',function(event){
     const form=event.target;
-    if(!(form instanceof HTMLFormElement)||form.method.toLowerCase()!=='get')return;
+    if(!(form instanceof HTMLFormElement))return;
+    if(form.method.toLowerCase()==='post'){
+      parent.postMessage({source:'duoviewurl',type:'session-submit'},'*');
+      return;
+    }
+    if(form.method.toLowerCase()!=='get')return;
     event.preventDefault();
     const target=form.getAttribute('data-duoviewurl-action')||original;
     const url=new URL(target,original);
